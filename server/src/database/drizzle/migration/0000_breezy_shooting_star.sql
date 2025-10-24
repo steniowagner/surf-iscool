@@ -1,10 +1,8 @@
-CREATE EXTENSION IF NOT EXISTS citext;
-CREATE SCHEMA "iam";
---> statement-breakpoint
+CREATE EXTENSION citext;
 CREATE TYPE "public"."auth_provider" AS ENUM('password', 'google', 'facebook');--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('student', 'instructor', 'admin');--> statement-breakpoint
 CREATE TYPE "public"."user_status" AS ENUM('pending_approval', 'active', 'deactivated', 'deleted');--> statement-breakpoint
-CREATE TABLE "iam"."auth_providers" (
+CREATE TABLE "auth_providers" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"provider" "auth_provider" NOT NULL,
@@ -14,7 +12,7 @@ CREATE TABLE "iam"."auth_providers" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "iam"."users" (
+CREATE TABLE "users" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"first_name" text NOT NULL,
 	"last_name" text,
@@ -29,9 +27,9 @@ CREATE TABLE "iam"."users" (
 	"deleted_at" timestamp with time zone
 );
 --> statement-breakpoint
-ALTER TABLE "iam"."auth_providers" ADD CONSTRAINT "auth_providers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "iam"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE UNIQUE INDEX "uq_auth_providers_per_user" ON "iam"."auth_providers" USING btree ("user_id","provider");--> statement-breakpoint
-CREATE UNIQUE INDEX "uq_auth_providers_identity" ON "iam"."auth_providers" USING btree ("provider","provider_user_id");--> statement-breakpoint
-CREATE INDEX "idx_auth_providers_user_id" ON "iam"."auth_providers" USING btree ("user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "uq_users_email" ON "iam"."users" USING btree ("email");--> statement-breakpoint
-CREATE INDEX "idx_users_status" ON "iam"."users" USING btree ("status");
+ALTER TABLE "auth_providers" ADD CONSTRAINT "auth_providers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "uq_auth_providers_per_user" ON "auth_providers" USING btree ("user_id","provider");--> statement-breakpoint
+CREATE UNIQUE INDEX "uq_auth_providers_identity" ON "auth_providers" USING btree ("provider","provider_user_id");--> statement-breakpoint
+CREATE INDEX "idx_auth_providers_user_id" ON "auth_providers" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "uq_users_email" ON "users" USING btree ("email");--> statement-breakpoint
+CREATE INDEX "idx_users_status" ON "users" USING btree ("status");

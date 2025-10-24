@@ -1,12 +1,12 @@
 {
-  "id": "493433c0-ee97-4487-b0a3-789d01796230",
+  "id": "0d08c200-fafc-46ec-b021-2bf649e75f07",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "iam.auth_providers": {
+    "public.auth_providers": {
       "name": "auth_providers",
-      "schema": "iam",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -118,7 +118,6 @@
           "name": "auth_providers_user_id_users_id_fk",
           "tableFrom": "auth_providers",
           "tableTo": "users",
-          "schemaTo": "iam",
           "columnsFrom": [
             "user_id"
           ],
@@ -135,9 +134,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "iam.users": {
+    "public.users": {
       "name": "users",
-      "schema": "iam",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -288,9 +287,7 @@
       ]
     }
   },
-  "schemas": {
-    "iam": "iam"
-  },
+  "schemas": {},
   "sequences": {},
   "roles": {},
   "policies": {},

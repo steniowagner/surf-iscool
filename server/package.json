@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate:dev": "NODE_ENV=dev drizzle-kit migrate"
+    "db:generate": "drizzle-kit generate --config src/database/drizzle/drizzle-migration.config.ts",
+    "db:migrate": "drizzle-kit migrate --config src/database/drizzle/drizzle-migration.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

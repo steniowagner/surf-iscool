@@ -1,6 +1,6 @@
+import { pgTable } from 'drizzle-orm/pg-core';
 import { customType, uniqueIndex } from 'drizzle-orm/pg-core';
 import {
-  pgSchema,
   uuid,
   text,
   timestamp,
@@ -8,8 +8,6 @@ import {
   pgEnum,
   index,
 } from 'drizzle-orm/pg-core';
-
-export const iam = pgSchema('iam');
 
 export const userStatusEnum = pgEnum('user_status', [
   'pending_approval',
@@ -30,7 +28,7 @@ const citext = customType<{ data: string }>({
   },
 });
 
-export const users = iam.table(
+export const users = pgTable(
   'users',
   {
     id: uuid('id').primaryKey().notNull(),
@@ -62,7 +60,7 @@ export const authProvider = pgEnum('auth_provider', [
   'facebook',
 ]);
 
-export const authProviders = iam.table(
+export const authProviders = pgTable(
   'auth_providers',
   {
     id: uuid('id').primaryKey().notNull(),
