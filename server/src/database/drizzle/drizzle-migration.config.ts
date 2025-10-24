@@ -1,6 +1,6 @@
 import { defineConfig } from 'drizzle-kit';
 
-import { loadEnv } from '@shared-modules/config/util/config.load-env';
+import { loadEnv } from '@shared-libs/env/load-env';
 
 import schemas from './schemas';
 

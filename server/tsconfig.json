@@ -22,6 +22,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
+      "@shared-libs/*": ["./src/module/shared/lib/*"],
       "@shared-modules/*": ["./src/module/shared/module/*"],
       "@src/*": ["./src/*"]
     }
