@@ -1,22 +1,10 @@
 import { defineConfig } from 'drizzle-kit';
-import dotenv from 'dotenv';
-import fs from 'fs';
+
+import { loadEnv } from '@shared-modules/config/util/config.load-env';
 
 import schemas from './schemas';
 
-const envs = {
-  test: '.env.test',
-  dev: '.env.dev',
-  prod: '.env',
-};
-
-const envFile = envs[process.env.NODE_ENV as keyof typeof envs];
-
-if (!fs.existsSync(envFile)) {
-  throw new Error('.env file found');
-}
-
-dotenv.config({ path: envFile });
+loadEnv();
 
 export default defineConfig({
   schema: schemas,

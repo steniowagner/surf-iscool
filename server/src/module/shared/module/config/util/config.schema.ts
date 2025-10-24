@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const environmentSchema = z.enum(['test', 'development', 'production']);
+import { envs } from './config.load-env';
+
+export const environmentSchema = z.enum(envs);
 
 export const databaseSchema = z.object({
   host: z.string(),
