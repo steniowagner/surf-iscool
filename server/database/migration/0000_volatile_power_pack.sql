@@ -7,7 +7,7 @@ CREATE TABLE "auth_providers" (
 	"user_id" uuid NOT NULL,
 	"provider" "auth_provider" NOT NULL,
 	"provider_user_id" text NOT NULL,
-	"is_email_verified" boolean,
+	"is_email_verified" boolean NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );

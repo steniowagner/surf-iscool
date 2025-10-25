@@ -1,6 +1,6 @@
 import path from 'path';
 
-const srcPath = path.join(__dirname, '..');
+const srcPath = path.join(__dirname, '..', './src');
 
 const identitySchema = path.join(
   srcPath,
