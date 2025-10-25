@@ -32,14 +32,12 @@ export class UserModel extends DefaultModel {
   static create(
     data: WithOptional<
       UserModel,
-      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'status' | 'role'
+      'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
     >,
   ) {
     return new UserModel({
       ...data,
       id: data.id ?? generateId(),
-      status: data.status ?? UserStatus.PendingApproval,
-      role: data.role ?? UserRole.Student,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
       deletedAt: data.deletedAt ?? null,

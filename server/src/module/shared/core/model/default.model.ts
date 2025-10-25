@@ -5,5 +5,5 @@ export abstract class DefaultModel {
   readonly id!: string;
   createdAt: Date;
   updatedAt: Date;
-  deletedAt: Date | null;
+  deletedAt?: Date | null;
 }

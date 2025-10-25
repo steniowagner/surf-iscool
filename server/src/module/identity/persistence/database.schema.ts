@@ -64,7 +64,7 @@ export const authProvidersTable = pgTable(
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     provider: authProvider('provider').notNull(),
     providerUserId: text('provider_user_id').notNull(),
-    isEmailVerified: boolean('is_email_verified'),
+    isEmailVerified: boolean('is_email_verified').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()
       .notNull(),
