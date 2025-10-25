@@ -12,8 +12,10 @@ import {
 import {
   UserStatus,
   UserRole,
-} from '@src/module/identity/core/model/user.modal';
+} from '@src/module/identity/core/model/user.model';
 import { enumToPgEnum } from '@shared-libs/enum-to-pg-enum';
+
+import { AuthProvider } from '../core/model/auth-provider.model';
 
 export const userStatusEnum = pgEnum('user_status', enumToPgEnum(UserStatus));
 
@@ -51,11 +53,7 @@ export const usersTable = pgTable(
   ],
 );
 
-export const authProvider = pgEnum('auth_provider', [
-  'password',
-  'google',
-  'facebook',
-]);
+export const authProvider = pgEnum('auth_provider', enumToPgEnum(AuthProvider));
 
 export const authProvidersTable = pgTable(
   'auth_providers',

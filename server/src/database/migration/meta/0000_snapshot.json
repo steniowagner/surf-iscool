@@ -1,5 +1,5 @@
 {
-  "id": "21bfa638-b31f-46d5-887e-3b85f2e0bce0",
+  "id": "4d6a001d-5575-460a-8cf1-9c814101bd1a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -185,16 +185,14 @@
           "type": "user_status",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'pending_approval'"
+          "notNull": true
         },
         "role": {
           "name": "role",
           "type": "user_role",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'student'"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -262,28 +260,28 @@
       "name": "auth_provider",
       "schema": "public",
       "values": [
-        "password",
-        "google",
-        "facebook"
+        "PASSWORD",
+        "FACEBOOK",
+        "GOOGLE"
       ]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
       "values": [
-        "student",
-        "instructor",
-        "admin"
+        "STUDENT",
+        "INSTRUCTOR",
+        "ADMIN"
       ]
     },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
       "values": [
-        "pending_approval",
-        "active",
-        "deactivated",
-        "deleted"
+        "PENDING_APPROVAL",
+        "ACTIVE",
+        "DEACTIVATED",
+        "DELETED"
       ]
     }
   },

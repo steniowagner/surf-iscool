@@ -6,7 +6,7 @@ import { DefaultRepository } from '@shared-modules/persistence/repository/defaul
 import { DATABASE } from '@shared-modules/persistence/persistence.module';
 import { usersTable } from '@src/module/identity/persistence/database.schema';
 import * as schema from '@src/module/identity/persistence/database.schema';
-import { UserModel } from '@src/module/identity/core/model/user.modal';
+import { UserModel } from '@src/module/identity/core/model/user.model';
 
 @Injectable()
 export class UserRepository extends DefaultRepository<

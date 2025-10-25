@@ -1,7 +1,7 @@
 CREATE EXTENSION citext;
-CREATE TYPE "public"."auth_provider" AS ENUM('password', 'google', 'facebook');--> statement-breakpoint
-CREATE TYPE "public"."user_role" AS ENUM('student', 'instructor', 'admin');--> statement-breakpoint
-CREATE TYPE "public"."user_status" AS ENUM('pending_approval', 'active', 'deactivated', 'deleted');--> statement-breakpoint
+CREATE TYPE "public"."auth_provider" AS ENUM('PASSWORD', 'FACEBOOK', 'GOOGLE');--> statement-breakpoint
+CREATE TYPE "public"."user_role" AS ENUM('STUDENT', 'INSTRUCTOR', 'ADMIN');--> statement-breakpoint
+CREATE TYPE "public"."user_status" AS ENUM('PENDING_APPROVAL', 'ACTIVE', 'DEACTIVATED', 'DELETED');--> statement-breakpoint
 CREATE TABLE "auth_providers" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -20,8 +20,8 @@ CREATE TABLE "users" (
 	"avatar_url" text,
 	"email" "citext" NOT NULL,
 	"password_hash" text,
-	"status" "user_status" DEFAULT 'pending_approval' NOT NULL,
-	"role" "user_role" DEFAULT 'student' NOT NULL,
+	"status" "user_status" NOT NULL,
+	"role" "user_role" NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone
