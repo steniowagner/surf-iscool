@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { envs } from '@shared-libs/env/load-env';
+import { envs } from '@shared-libs/load-env';
 
 export const environmentSchema = z.enum(envs);
 

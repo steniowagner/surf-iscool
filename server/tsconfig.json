@@ -24,6 +24,7 @@
     "paths": {
       "@shared-libs/*": ["./src/module/shared/lib/*"],
       "@shared-modules/*": ["./src/module/shared/module/*"],
+      "@shared-core/*": ["./src/module/shared/core/*"],
       "@src/*": ["./src/*"]
     }
   }

@@ -10,6 +10,7 @@ export class ConfigModule {
       module: ConfigModule,
       imports: [
         NestConfigModule.forRoot({
+          expandVariables: true,
           load: [factory],
         }),
       ],

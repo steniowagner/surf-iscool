@@ -1,5 +1,5 @@
-import { pgTable } from 'drizzle-orm/pg-core';
 import { customType, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable } from 'drizzle-orm/pg-core';
 import {
   uuid,
   text,
@@ -9,18 +9,15 @@ import {
   index,
 } from 'drizzle-orm/pg-core';
 
-export const userStatusEnum = pgEnum('user_status', [
-  'pending_approval',
-  'active',
-  'deactivated',
-  'deleted',
-]);
+import {
+  UserStatus,
+  UserRole,
+} from '@src/module/identity/core/model/user.modal';
+import { enumToPgEnum } from '@shared-libs/enum-to-pg-enum';
 
-export const userRoleEnum = pgEnum('user_role', [
-  'student',
-  'instructor',
-  'admin',
-]);
+export const userStatusEnum = pgEnum('user_status', enumToPgEnum(UserStatus));
+
+export const userRoleEnum = pgEnum('user_role', enumToPgEnum(UserRole));
 
 const citext = customType<{ data: string }>({
   dataType() {
@@ -28,7 +25,7 @@ const citext = customType<{ data: string }>({
   },
 });
 
-export const users = pgTable(
+export const usersTable = pgTable(
   'users',
   {
     id: uuid('id').primaryKey().notNull(),
@@ -38,8 +35,8 @@ export const users = pgTable(
     avatarUrl: text('avatar_url'),
     email: citext('email').notNull(),
     passwordHash: text('password_hash'),
-    status: userStatusEnum('status').notNull().default('pending_approval'),
-    role: userRoleEnum('role').notNull().default('student'),
+    status: userStatusEnum('status').notNull(),
+    role: userRoleEnum('role').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -60,13 +57,13 @@ export const authProvider = pgEnum('auth_provider', [
   'facebook',
 ]);
 
-export const authProviders = pgTable(
+export const authProvidersTable = pgTable(
   'auth_providers',
   {
     id: uuid('id').primaryKey().notNull(),
     userId: uuid('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     provider: authProvider('provider').notNull(),
     providerUserId: text('provider_user_id').notNull(),
     isEmailVerified: boolean('is_email_verified'),

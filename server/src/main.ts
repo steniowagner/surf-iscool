@@ -2,7 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { ConfigService } from '@shared-modules/config/service/config.service';
-import { loadEnv } from '@shared-libs/env/load-env';
+import { loadEnv } from '@shared-libs/load-env';
 
 import { AppModule } from './app.module';
 

@@ -1,8 +1,10 @@
-import { ConfigModule } from '@shared-modules/config/config.module';
 import { Module } from '@nestjs/common';
 
+import { ConfigModule } from '@shared-modules/config/config.module';
+import { IdentityModule } from '@src/module/identity/identity.module';
+
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [ConfigModule.forRoot(), IdentityModule],
   controllers: [],
   providers: [],
 })
