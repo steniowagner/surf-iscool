@@ -27,13 +27,17 @@ export class UserRepository extends DefaultRepository<
   }
 
   async findByEmail(email: string): Promise<UserModel | null> {
-    const res = await this.db
-      .select()
-      .from(this.table)
-      .where(eq(usersTable.email, email));
-    if (res.length === 0) {
-      return null;
+    try {
+      const res = await this.db
+        .select()
+        .from(this.table)
+        .where(eq(usersTable.email, email));
+      if (res.length === 0) {
+        return null;
+      }
+      return this.mapToModel(res[0]);
+    } catch (error) {
+      this.handleError(error);
     }
-    return this.mapToModel(res[0]);
   }
 }

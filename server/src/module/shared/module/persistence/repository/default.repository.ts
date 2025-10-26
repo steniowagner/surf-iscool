@@ -53,6 +53,17 @@ export abstract class DefaultRepository<
     });
   }
 
+  protected handleError(error: unknown): never {
+    const meta = getPgErrorMetadata(error);
+    this.logger.error(
+      `Database error: ${meta.code ? ` ${meta.code}` : ''}` +
+        `${meta.table ? ` on ${meta.table}` : ''}${meta.constraint ? `/${meta.constraint}` : ''}` +
+        `${meta.detail ? `: ${meta.detail}` : ''}`,
+      { meta },
+    );
+    this.handleAndThrowError(error);
+  }
+
   async create(
     model: M,
     db:
@@ -62,14 +73,7 @@ export abstract class DefaultRepository<
     try {
       await db.insert(this.table).values(model);
     } catch (error) {
-      const meta = getPgErrorMetadata(error);
-      this.logger.error(
-        `Database error: ${meta.code ? ` ${meta.code}` : ''}` +
-          `${meta.table ? ` on ${meta.table}` : ''}${meta.constraint ? `/${meta.constraint}` : ''}` +
-          `${meta.detail ? `: ${meta.detail}` : ''}`,
-        { meta },
-      );
-      this.handleAndThrowError(error);
+      this.handleError(error);
     }
   }
 
@@ -86,14 +90,7 @@ export abstract class DefaultRepository<
         .where(eq(this.table.id, id));
       return res.length ? this.mapToModel(res[0] as InferSelectModel<T>) : null;
     } catch (error) {
-      const meta = getPgErrorMetadata(error);
-      this.logger.error(
-        `Database error: ${meta.code ? ` ${meta.code}` : ''}` +
-          `${meta.table ? ` on ${meta.table}` : ''}${meta.constraint ? `/${meta.constraint}` : ''}` +
-          `${meta.detail ? `: ${meta.detail}` : ''}`,
-        { meta },
-      );
-      this.handleAndThrowError(error);
+      this.handleError(error);
     }
   }
 }
