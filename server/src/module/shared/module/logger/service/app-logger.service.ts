@@ -6,7 +6,7 @@ import { initLogger } from '../util/logger.factory';
 type ContextType = Record<string, unknown> & { exception?: unknown };
 
 @Injectable()
-export class AppLogger implements LoggerService {
+export class AppLoggerService implements LoggerService {
   private readonly logger: Logger;
 
   constructor() {
@@ -33,12 +33,10 @@ export class AppLogger implements LoggerService {
         originMethod: callerMethod,
       };
     }
-
     const stack = new Error().stack;
     const caller = stack?.split('\n')[4].trim().split(' ')[1];
     const callerClass = caller?.split('.')[0];
     const callerMethod = caller?.split('.').slice(1).join('.');
-
     return {
       originClass: callerClass,
       originMethod: callerMethod,

@@ -6,6 +6,10 @@ export const factory = (): Config => {
   const result = configSchema.safeParse({
     env: process.env.NODE_ENV,
     port: process.env.PORT,
+    passwordMinLength: process.env.PASSWORD_MIN_LENGTH,
+    passwordHashSalt: process.env.PASSWORD_HASH_SALT,
+    verificationEmailExpirationMinutes:
+      process.env.VERIFICATION_EMAIL_EXPIRATION_MINUTES,
     database: {
       host: process.env.DATABASE_HOST,
       port: process.env.DATABASE_PORT,

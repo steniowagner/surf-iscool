@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
+import { GlobalExceptionFilter } from '@src/module/shared/http/rest/global-filter.exception';
 import { ConfigService } from '@shared-modules/config/service/config.service';
 import { LoggerFactory } from '@shared-modules/logger/util/logger.factory';
 import { loadEnv } from '@shared-libs/load-env';
@@ -15,7 +16,8 @@ async function bootstrap() {
   const configService = app.get<ConfigService>(ConfigService);
   const port = configService.get('port');
 
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.setGlobalPrefix('api');
   app.useLogger(logger);
 

@@ -16,11 +16,10 @@ export enum UserRole {
 
 export class UserModel extends DefaultModel {
   firstName: string;
-  lastName: string | null;
+  lastName?: string | null;
   phone: string;
-  avatarUrl: string | null;
+  avatarUrl?: string | null;
   email: string;
-  passwordHash: string | null;
   status: UserStatus;
   role: UserRole;
 
@@ -32,12 +31,14 @@ export class UserModel extends DefaultModel {
   static create(
     data: WithOptional<
       UserModel,
-      'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
+      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'status' | 'role'
     >,
   ) {
     return new UserModel({
       ...data,
       id: data.id ?? generateId(),
+      status: data.status ?? UserStatus.PendingApproval,
+      role: data.role ?? UserRole.Student,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
       deletedAt: data.deletedAt ?? null,

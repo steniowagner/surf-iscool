@@ -6,26 +6,26 @@ import { DefaultRepository } from '@shared-modules/persistence/repository/defaul
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
 
-import { AuthProviderModel } from '../../core/model/auth-provider.model';
-import { authProvidersTable } from '../database.schema';
+import { EmailVerification } from '../../core/model/email-verification.model';
+import { emailVerifications } from '../database.schema';
 import * as schema from '../database.schema';
 
 @Injectable()
-export class AuthProviderRepository extends DefaultRepository<
-  AuthProviderModel,
-  typeof authProvidersTable
+export class EmailVerificationRepository extends DefaultRepository<
+  EmailVerification,
+  typeof emailVerifications
 > {
   constructor(
     @Inject(DATABASE)
     protected readonly db: PostgresJsDatabase<typeof schema>,
     protected readonly logger: AppLoggerService,
   ) {
-    super(db, authProvidersTable, logger);
+    super(db, emailVerifications, logger);
   }
 
   protected mapToModel(
-    data: InferSelectModel<typeof authProvidersTable>,
-  ): AuthProviderModel {
-    return AuthProviderModel.createFrom(data);
+    data: InferSelectModel<typeof emailVerifications>,
+  ): EmailVerification {
+    return EmailVerification.createFrom(data);
   }
 }

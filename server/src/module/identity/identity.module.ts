@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 
+import { SecurityModule } from '@shared-modules/security/security.module';
+import { ConfigModule } from '@shared-modules/config/config.module';
+
+import { RegisterUserUsingEmailUseCase } from './application/use-case/register-user-using-email.use-case';
 import { IdentityPersistenceModule } from './persistence/identity-persistence.module';
-import { AuthController } from './http/rest/controller/auth.controller';
+import { AuthLocalController } from './http/rest/controller/auth-local.controller';
 
 @Module({
-  imports: [IdentityPersistenceModule],
-  providers: [],
-  controllers: [AuthController],
+  imports: [ConfigModule.forRoot(), IdentityPersistenceModule, SecurityModule],
+  providers: [RegisterUserUsingEmailUseCase],
+  controllers: [AuthLocalController],
 })
 export class IdentityModule {}

@@ -21,11 +21,7 @@ export const userStatusEnum = pgEnum('user_status', enumToPgEnum(UserStatus));
 
 export const userRoleEnum = pgEnum('user_role', enumToPgEnum(UserRole));
 
-const citext = customType<{ data: string }>({
-  dataType() {
-    return 'citext';
-  },
-});
+export const authProvider = pgEnum('auth_provider', enumToPgEnum(AuthProvider));
 
 export const usersTable = pgTable(
   'users',
@@ -35,8 +31,7 @@ export const usersTable = pgTable(
     lastName: text('last_name'),
     phone: text('phone').notNull(),
     avatarUrl: text('avatar_url'),
-    email: citext('email').notNull(),
-    passwordHash: text('password_hash'),
+    email: text('email').notNull(),
     status: userStatusEnum('status').notNull(),
     role: userRoleEnum('role').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -52,8 +47,6 @@ export const usersTable = pgTable(
     index('idx_users_status').on(table.status),
   ],
 );
-
-export const authProvider = pgEnum('auth_provider', enumToPgEnum(AuthProvider));
 
 export const authProvidersTable = pgTable(
   'auth_providers',
@@ -79,5 +72,49 @@ export const authProvidersTable = pgTable(
       table.providerUserId,
     ),
     index('idx_auth_providers_user_id').on(table.userId),
+  ],
+);
+
+export const credentialsLocal = pgTable('credentials_local', {
+  id: uuid('id').primaryKey().notNull(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => usersTable.id, { onDelete: 'cascade' }),
+  passwordHash: text('password_hash').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const emailVerifications = pgTable(
+  'email_verifications',
+  {
+    id: uuid('id').primaryKey().notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull(),
+    expiresAt: timestamp('expire_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    {
+      idxTokenHash: index('idx_email_verifications_token_hash').on(
+        table.tokenHash,
+      ),
+      idxUserExpires: index('idx_email_verifications_user_expires').on(
+        table.userId,
+        table.expiresAt,
+      ),
+    },
   ],
 );

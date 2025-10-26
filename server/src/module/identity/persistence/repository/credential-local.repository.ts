@@ -6,26 +6,26 @@ import { DefaultRepository } from '@shared-modules/persistence/repository/defaul
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
 
-import { AuthProviderModel } from '../../core/model/auth-provider.model';
-import { authProvidersTable } from '../database.schema';
+import { CredentialLocalModel } from '../../core/model/credential-local.model';
+import { credentialsLocal } from '../database.schema';
 import * as schema from '../database.schema';
 
 @Injectable()
-export class AuthProviderRepository extends DefaultRepository<
-  AuthProviderModel,
-  typeof authProvidersTable
+export class CredentialLocalRepository extends DefaultRepository<
+  CredentialLocalModel,
+  typeof credentialsLocal
 > {
   constructor(
     @Inject(DATABASE)
     protected readonly db: PostgresJsDatabase<typeof schema>,
     protected readonly logger: AppLoggerService,
   ) {
-    super(db, authProvidersTable, logger);
+    super(db, credentialsLocal, logger);
   }
 
   protected mapToModel(
-    data: InferSelectModel<typeof authProvidersTable>,
-  ): AuthProviderModel {
-    return AuthProviderModel.createFrom(data);
+    data: InferSelectModel<typeof credentialsLocal>,
+  ): CredentialLocalModel {
+    return CredentialLocalModel.createFrom(data);
   }
 }

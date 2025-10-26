@@ -3,8 +3,10 @@ import { DynamicModule, Module } from '@nestjs/common';
 
 import { ConfigService } from '@shared-modules/config/service/config.service';
 import { ConfigModule } from '@shared-modules/config/config.module';
+import { LoggerModule } from '@shared-modules/logger/logger.module';
 
-export const DATABASE = 'DATABASE';
+import { UnitOfWorkService } from './service/unit-of-work.service';
+import { DATABASE } from './util/constants';
 
 @Module({})
 export class PersistenceModule {
@@ -12,6 +14,7 @@ export class PersistenceModule {
     return {
       module: PersistenceModule,
       imports: [
+        LoggerModule,
         DrizzlePostgresModule.registerAsync({
           tag: DATABASE,
           imports: [ConfigModule.forRoot()],
@@ -26,11 +29,13 @@ export class PersistenceModule {
               postgres: {
                 url: `postgres://${user}:${encodeURIComponent(password)}@${host}:${port}/${database}`,
               },
-              config: { schema, logger: false },
+              config: { schema, logger: process.env.NODE_ENV !== 'prod' },
             };
           },
         }),
       ],
+      providers: [UnitOfWorkService],
+      exports: [UnitOfWorkService],
     };
   }
 }

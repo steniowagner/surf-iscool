@@ -19,11 +19,15 @@ export class AuthProviderModel extends DefaultModel {
   }
 
   static create(
-    data: WithOptional<AuthProviderModel, 'id' | 'createdAt' | 'updatedAt'>,
+    data: WithOptional<
+      AuthProviderModel,
+      'id' | 'createdAt' | 'updatedAt' | 'isEmailVerified'
+    >,
   ) {
     return new AuthProviderModel({
       ...data,
       id: data.id ?? generateId(),
+      isEmailVerified: data.isEmailVerified ?? false,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
     });

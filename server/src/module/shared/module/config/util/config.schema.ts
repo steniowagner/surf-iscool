@@ -15,5 +15,8 @@ export const databaseSchema = z.object({
 export const configSchema = z.object({
   env: environmentSchema,
   port: z.coerce.number().positive().int(),
+  passwordMinLength: z.coerce.number().positive().int(),
+  passwordHashSalt: z.coerce.number().positive().int(),
+  verificationEmailExpirationMinutes: z.coerce.number().positive().int(),
   database: databaseSchema,
 });

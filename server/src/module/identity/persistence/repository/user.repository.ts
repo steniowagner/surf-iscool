@@ -1,12 +1,13 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
-import { InferSelectModel } from 'drizzle-orm';
+import { eq, InferSelectModel } from 'drizzle-orm';
 
 import { DefaultRepository } from '@shared-modules/persistence/repository/default.repository';
-import { DATABASE } from '@shared-modules/persistence/persistence.module';
+import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { usersTable } from '@src/module/identity/persistence/database.schema';
 import * as schema from '@src/module/identity/persistence/database.schema';
 import { UserModel } from '@src/module/identity/core/model/user.model';
+import { DATABASE } from '@shared-modules/persistence/util/constants';
 
 @Injectable()
 export class UserRepository extends DefaultRepository<
@@ -16,11 +17,23 @@ export class UserRepository extends DefaultRepository<
   constructor(
     @Inject(DATABASE)
     protected readonly db: PostgresJsDatabase<typeof schema>,
+    protected readonly logger: AppLoggerService,
   ) {
-    super(db, usersTable);
+    super(db, usersTable, logger);
   }
 
   protected mapToModel(data: InferSelectModel<typeof usersTable>): UserModel {
     return UserModel.createFrom(data);
+  }
+
+  async findByEmail(email: string): Promise<UserModel | null> {
+    const res = await this.db
+      .select()
+      .from(this.table)
+      .where(eq(usersTable.email, email));
+    if (res.length === 0) {
+      return null;
+    }
+    return this.mapToModel(res[0]);
   }
 }
