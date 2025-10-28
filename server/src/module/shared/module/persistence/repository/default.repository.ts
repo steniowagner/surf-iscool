@@ -24,7 +24,18 @@ export abstract class DefaultRepository<
 
   protected abstract mapToModel(data: InferSelectModel<T>): M;
 
-  protected handleAndThrowError(error: unknown): never {
+  protected handleError(error: unknown): never {
+    const meta = getPgErrorMetadata(error);
+    this.logger.error(
+      `Database error: ${meta.code ? ` ${meta.code}` : ''}` +
+        `${meta.table ? ` on ${meta.table}` : ''}${meta.constraint ? `/${meta.constraint}` : ''}` +
+        `${meta.detail ? `: ${meta.detail}` : ''}`,
+      { meta },
+    );
+    this.handleAndThrowError(error);
+  }
+
+  private handleAndThrowError(error: unknown): never {
     const { code, detail, constraint, table } = getPgErrorMetadata(error);
     if (code === '23505') {
       throw new PersistenceClientException(
@@ -51,17 +62,6 @@ export abstract class DefaultRepository<
       cause: error,
       context: { constraint, table, detail, code },
     });
-  }
-
-  protected handleError(error: unknown): never {
-    const meta = getPgErrorMetadata(error);
-    this.logger.error(
-      `Database error: ${meta.code ? ` ${meta.code}` : ''}` +
-        `${meta.table ? ` on ${meta.table}` : ''}${meta.constraint ? `/${meta.constraint}` : ''}` +
-        `${meta.detail ? `: ${meta.detail}` : ''}`,
-      { meta },
-    );
-    this.handleAndThrowError(error);
   }
 
   async create(

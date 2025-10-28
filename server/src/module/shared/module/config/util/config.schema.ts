@@ -18,5 +18,6 @@ export const configSchema = z.object({
   passwordMinLength: z.coerce.number().positive().int(),
   passwordHashSalt: z.coerce.number().positive().int(),
   verificationEmailExpirationMinutes: z.coerce.number().positive().int(),
+  brevoApiKey: z.string(),
   database: databaseSchema,
 });

@@ -47,14 +47,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof PersistenceInternalException) {
       const error = new InternalServerErrorException({
-        code: 'PERSISTENCE_INTERNAL',
         message: 'Database operation failed',
       });
       return res.status(error.getStatus()).json(error.getResponse());
     }
 
     const error = new InternalServerErrorException({
-      code: 'INTERNAL',
       message: 'Unexpected error',
     });
     return res.status(error.getStatus()).json(error.getResponse());

@@ -13,7 +13,9 @@ const readCode = (object: unknown): string | undefined =>
   isRecord(object) && typeof object.code === 'string' ? object.code : undefined;
 
 const readMeta = (object: unknown): Omit<PgErrorMetadata, 'code'> => {
-  if (!isRecord(object)) return {};
+  if (!isRecord(object)) {
+    return {};
+  }
   return {
     detail: typeof object.detail === 'string' ? object.detail : undefined,
     constraint:

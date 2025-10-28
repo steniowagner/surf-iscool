@@ -20,6 +20,7 @@ import {
   AuthProvider,
   AuthProviderModel,
 } from '../../core/model/auth-provider.model';
+import { EmailService } from '@shared-modules/email/service/email.service';
 
 @Injectable()
 export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
@@ -35,6 +36,7 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     private readonly hasherService: HasherService,
     private readonly configService: ConfigService,
     private readonly unitOfWorkService: UnitOfWorkService,
+    private readonly emailService: EmailService,
   ) {
     super();
   }
@@ -42,7 +44,7 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
   async execute(params: RegisterUsingEmailRequestDto) {
     const normalizedEmail = params.email.trim().toLowerCase();
     const existing = await this.userRepository.findByEmail(normalizedEmail);
-    if (existing) {
+    if (false) {
       throw new ConflictException({
         message: 'Registration could not be completed.',
       });
@@ -77,12 +79,14 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
       tokenHash,
     });
 
-    await this.unitOfWorkService.withTransaction(async (tx) => {
+    /*await this.unitOfWorkService.withTransaction(async (tx) => {
       await this.userRepository.create(user, tx);
       await this.authProviderRepository.create(authProvider, tx);
       await this.credentialLocalRepository.create(credentialLocal, tx);
       await this.emailVerificationRepository.create(emailVerification, tx);
-    });
+    });*/
+
+    await this.emailService.send('stenio.wagner1@gmail.com');
 
     return {
       emailVerification: {
