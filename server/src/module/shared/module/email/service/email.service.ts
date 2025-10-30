@@ -4,12 +4,16 @@ import { Resend } from 'resend';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { ConfigService } from '@shared-modules/config/service/config.service';
 
-import { getEmailTemplate, Template } from '../util/constants';
+import {
+  getEmailTemplate,
+  TemplateId,
+  TemplateParamsById,
+} from '../util/constants';
 
-type SendParams = {
-  templateParams: Record<string, unknown>;
-  template: Template;
+type SendParams<T extends TemplateId> = {
   userEmail: string;
+  template: T;
+  templateParams: TemplateParamsById[T];
 };
 
 @Injectable()
@@ -23,26 +27,24 @@ export class EmailService {
     this.client = new Resend(this.configService.get('resendApiKey'));
   }
 
-  async send(params: SendParams) {
+  private handleError(userEmail: string, error: any) {
+    this.loggerService.error(`Failed to send email to ${userEmail}`, error);
+  }
+
+  async send<T extends TemplateId>(params: SendParams<T>) {
     try {
       const template = getEmailTemplate(params.template)(params.templateParams);
-      const { data, error } = await this.client.emails.send({
+      const { error } = await this.client.emails.send({
         from: this.configService.get('noReplyEmailSender'),
         to: [params.userEmail],
         subject: template.subject,
         html: template.html,
       });
-
-      console.log(data);
-
       if (error) {
-        return console.error({ error });
+        this.handleError(params.userEmail, error);
       }
     } catch (error: any) {
-      this.loggerService.error(
-        `Failed to send email to ${params.userEmail}`,
-        error,
-      );
+      this.handleError(params.userEmail, error);
     }
   }
 }
