@@ -1,39 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import {
-  TransactionalEmailsApi,
-  TransactionalEmailsApiApiKeys,
-} from '@getbrevo/brevo';
+import { Resend } from 'resend';
 
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { ConfigService } from '@shared-modules/config/service/config.service';
 
+import { getEmailTemplate, Template } from '../util/constants';
+
+type SendParams = {
+  templateParams: Record<string, unknown>;
+  template: Template;
+  userEmail: string;
+};
+
 @Injectable()
 export class EmailService {
-  private client: TransactionalEmailsApi = new TransactionalEmailsApi();
+  private client: Resend;
 
   constructor(
     private readonly loggerService: AppLoggerService,
     private readonly configService: ConfigService,
   ) {
-    this.client.setApiKey(
-      TransactionalEmailsApiApiKeys.apiKey,
-      this.configService.get('brevoApiKey'),
-    );
+    this.client = new Resend(this.configService.get('resendApiKey'));
   }
 
-  async send(to: string) {
+  async send(params: SendParams) {
     try {
-      const result = await this.client.sendTransacEmail({
-        to: [{ email: to, name: 'John doe' }],
-        subject: 'Hello from Brevo SDK!',
-        htmlContent:
-          '<h1>This is a transactional email sent using the Brevo SDK.</h1>',
-        textContent: 'This is a transactional email sent using the Brevo SDK.',
-        sender: { email: to, name: 'John doe' },
+      const template = getEmailTemplate(params.template)(params.templateParams);
+      const { data, error } = await this.client.emails.send({
+        from: this.configService.get('noReplyEmailSender'),
+        to: [params.userEmail],
+        subject: template.subject,
+        html: template.html,
       });
-      console.log(result);
+
+      console.log(data);
+
+      if (error) {
+        return console.error({ error });
+      }
     } catch (error: any) {
-      this.loggerService.error(`Failed to send email to ${to}`, error);
+      this.loggerService.error(
+        `Failed to send email to ${params.userEmail}`,
+        error,
+      );
     }
   }
 }

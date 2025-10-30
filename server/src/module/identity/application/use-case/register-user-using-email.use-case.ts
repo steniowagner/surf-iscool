@@ -86,13 +86,18 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
       await this.emailVerificationRepository.create(emailVerification, tx);
     });*/
 
-    await this.emailService.send('stenio.wagner1@gmail.com');
+    await this.emailService.send({
+      userEmail: user.email,
+      template: 'ACTIVATE_EMAIL_OTP',
+      templateParams: {
+        code: '456789',
+        userName: user.firstName,
+        codeTtl: `${this.configService.get('verificationEmailExpirationMinutes')} minutos`,
+      },
+    });
 
     return {
-      emailVerification: {
-        sent: true,
-        expiresAt: emailVerification.expiresAt,
-      },
+      activationEmailExpiresAt: emailVerification.expiresAt,
     };
   }
 }

@@ -1,29 +1,9 @@
-import { Expose, Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsISO8601,
-  IsNotEmpty,
-  IsObject,
-  ValidateNested,
-} from 'class-validator';
-
-class EmailVerification {
-  @IsNotEmpty()
-  @IsBoolean()
-  @Expose()
-  sent: boolean;
-
-  @IsNotEmpty()
-  @IsISO8601()
-  @Expose()
-  expiresAt: Date;
-}
+import { Expose } from 'class-transformer';
+import { IsISO8601, IsNotEmpty } from 'class-validator';
 
 export class RegisterUsingEmailResponseDto {
   @IsNotEmpty()
+  @IsISO8601()
   @Expose()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => EmailVerification)
-  emailVerification: EmailVerification;
+  activationEmailExpiresAt: Date;
 }
