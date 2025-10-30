@@ -10,7 +10,8 @@ export const factory = (): Config => {
     passwordHashSalt: process.env.PASSWORD_HASH_SALT,
     verificationEmailExpirationMinutes:
       process.env.VERIFICATION_EMAIL_EXPIRATION_MINUTES,
-    brevoApiKey: process.env.BREVO_API_KEY,
+    resendApiKey: process.env.RESEND_API_KEY,
+    noReplyEmailSender: process.env.NO_REPLY_EMAIL_SENDER,
     database: {
       host: process.env.DATABASE_HOST,
       port: process.env.DATABASE_PORT,

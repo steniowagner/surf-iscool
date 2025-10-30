@@ -22,7 +22,6 @@
     "db:migrate:dev": "NODE_ENV=dev drizzle-kit migrate --config database/drizzle-migration.config.ts"
   },
   "dependencies": {
-    "@getbrevo/brevo": "^3.0.1",
     "@knaadh/nestjs-drizzle-postgres": "^1.2.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -38,6 +37,7 @@
     "nest-winston": "^1.10.2",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
+    "resend": "^6.3.0",
     "rxjs": "^7.8.1",
     "winston": "^3.18.3",
     "zod": "^4.1.12"
