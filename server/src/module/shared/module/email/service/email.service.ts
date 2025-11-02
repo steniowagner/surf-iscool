@@ -32,14 +32,12 @@ export class EmailService {
     try {
       const template = getEmailTemplate(params.template)(params.templateParams);
       const result = await this.client.emails.send({
-        from: this.configService.get('noReplyEmailSender'),
+        from: `Rocha's Surf School <${this.configService.get('noReplyEmailSender')}>`,
         to: [params.userEmail],
         subject: template.subject,
         html: template.html,
       });
-      if (result.error) {
-        this.handleError(params.userEmail, result.error);
-      }
+      if (result.error) this.handleError(params.userEmail, result.error);
     } catch (error: any) {
       this.handleError(params.userEmail, error);
     }

@@ -21,9 +21,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const http = host.switchToHttp();
     const res = http.getResponse<Response>();
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof HttpException)
       return res.status(exception.getStatus()).json(exception.getResponse());
-    }
 
     if (exception instanceof PersistenceClientException) {
       const meta = getPgErrorMetadata(exception);
@@ -55,6 +54,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const error = new InternalServerErrorException({
       message: 'Unexpected error',
     });
+
     return res.status(error.getStatus()).json(error.getResponse());
   }
 }

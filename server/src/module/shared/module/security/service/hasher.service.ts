@@ -2,20 +2,18 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
-import { HashException } from '../exception/security.exception';
+import { ConfigService } from '@shared-modules/config/service/config.service';
 
-type HashParams = {
-  rounds: number;
-  pepper: string;
-  plain: string;
-};
+import { HashException } from '../exception/security.exception';
 
 @Injectable()
 export class HasherService {
+  constructor(private readonly configService: ConfigService) {}
+
   private prehash(plain: string, pepper: string) {
-    if (!plain.length) {
-      throw new HashException('Value cannot be empty');
-    }
+    if (!plain.length) throw new HashException('Value cannot be empty');
+    if (plain.length > 10_000) throw new HashException('Value too long');
+    if (!pepper) throw new HashException('Pepper is required');
     const hmac = crypto
       .createHmac('sha256', pepper)
       .update(plain, 'utf8')
@@ -23,13 +21,16 @@ export class HasherService {
     return crypto.createHash('sha256').update(hmac).digest('hex');
   }
 
-  hash(params: HashParams) {
-    const prehashed = this.prehash(params.plain, params.pepper);
-    return bcrypt.hash(prehashed, params.rounds);
+  hash(plain: string) {
+    const pepper = this.configService.get('passwordHashPepper');
+    const rounds = this.configService.get('hashRounds');
+    const prehashed = this.prehash(plain, pepper);
+    return bcrypt.hash(prehashed, rounds);
   }
 
-  compare(params: HashParams) {
-    const prehashed = this.prehash(params.plain, params.pepper);
-    return bcrypt.compare(params.plain, prehashed);
+  compare(plain: string, storedHash: string) {
+    const pepper = this.configService.get('passwordHashPepper');
+    const prehashed = this.prehash(plain, pepper);
+    return bcrypt.compare(prehashed, storedHash);
   }
 }

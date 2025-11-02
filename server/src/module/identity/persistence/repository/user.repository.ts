@@ -32,9 +32,7 @@ export class UserRepository extends DefaultRepository<
         .select()
         .from(this.table)
         .where(eq(usersTable.email, email));
-      if (res.length === 0) {
-        return null;
-      }
+      if (res.length === 0) return null;
       return this.mapToModel(res[0]);
     } catch (error) {
       this.handleError(error);

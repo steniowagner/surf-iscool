@@ -1,5 +1,5 @@
+import { and, eq, gt, InferSelectModel, isNull } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { desc, eq, InferSelectModel } from 'drizzle-orm';
 import { PgTransaction } from 'drizzle-orm/pg-core';
 import { Inject, Injectable } from '@nestjs/common';
 
@@ -7,9 +7,20 @@ import { DefaultRepository } from '@shared-modules/persistence/repository/defaul
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
 
-import { EmailVerification } from '../../core/model/email-verification.model';
+import {
+  EmailVerification,
+  Purpose,
+} from '../../core/model/email-verification.model';
 import { emailVerifications } from '../database.schema';
 import * as schema from '../database.schema';
+
+type InvalidateAllActiveParams = {
+  db:
+    | PostgresJsDatabase<Record<string, unknown>>
+    | PgTransaction<any, any, any>;
+  userId: string;
+  purpose: Purpose;
+};
 
 @Injectable()
 export class EmailVerificationRepository extends DefaultRepository<
@@ -24,20 +35,12 @@ export class EmailVerificationRepository extends DefaultRepository<
     super(db, emailVerifications, logger);
   }
 
-  async markAsUsed(
-    userId: string,
-    db:
-      | PostgresJsDatabase<Record<string, unknown>>
-      | PgTransaction<any, any, any> = this.db,
-  ) {
+  async invalidateAllActive({
+    db = this.db,
+    purpose,
+    userId,
+  }: InvalidateAllActiveParams) {
     try {
-      const [{ id }] = await db
-        .select({ id: this.table.id })
-        .from(this.table)
-        .where(eq(this.table.userId, userId))
-        .orderBy(desc(this.table.createdAt))
-        .limit(1);
-
       const now = new Date();
       const [updated] = await db
         .update(this.table)
@@ -45,9 +48,15 @@ export class EmailVerificationRepository extends DefaultRepository<
           updatedAt: now,
           usedAt: now,
         })
-        .where(eq(this.table.id, id))
+        .where(
+          and(
+            eq(this.table.userId, userId),
+            eq(this.table.purpose, purpose),
+            gt(this.table.expiresAt, now),
+            isNull(this.table.usedAt),
+          ),
+        )
         .returning();
-
       return updated ?? null;
     } catch (error) {
       this.handleError(error);

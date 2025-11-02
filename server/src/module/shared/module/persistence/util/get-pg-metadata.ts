@@ -13,9 +13,7 @@ const readCode = (object: unknown): string | undefined =>
   isRecord(object) && typeof object.code === 'string' ? object.code : undefined;
 
 const readMeta = (object: unknown): Omit<PgErrorMetadata, 'code'> => {
-  if (!isRecord(object)) {
-    return {};
-  }
+  if (!isRecord(object)) return {};
   return {
     detail: typeof object.detail === 'string' ? object.detail : undefined,
     constraint:
@@ -48,9 +46,7 @@ export const getPgErrorMetadata = (error: unknown): PgErrorMetadata => {
   }
   while (current) {
     const code = readCode(current);
-    if (code) {
-      return { code, ...readMeta(current) };
-    }
+    if (code) return { code, ...readMeta(current) };
     current =
       isRecord(current) && 'cause' in current ? current.cause : undefined;
   }

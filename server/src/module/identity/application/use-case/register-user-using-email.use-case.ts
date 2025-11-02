@@ -46,27 +46,6 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     super();
   }
 
-  private generateOtp() {
-    const ttl = this.configService.get('verificationEmailExpirationMinutes');
-    const secret = this.configService.get('otpSecret');
-    const length = this.configService.get('otpLength');
-    return this.tokenGenerationService.generateOtp({
-      ttl: ttl * 60 * 1000,
-      secret,
-      length,
-    });
-  }
-
-  private async generatePasswordHash(password: string) {
-    const pepper = this.configService.get('passwordHashPepper');
-    const rounds = this.configService.get('passwordHashRounds');
-    return this.hasherService.hash({
-      plain: password,
-      rounds,
-      pepper,
-    });
-  }
-
   private createEmailVerification(user: UserModel, otp: OTP) {
     return EmailVerification.create({
       purpose: Purpose.AccountActivation,
@@ -89,18 +68,17 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     });
   }
 
-  private async resendOtp(user: UserModel, passaword: string) {
-    const otp = this.generateOtp();
+  private async resendOtp(user: UserModel) {
+    const otpScope = `${user.email}:${Purpose.AccountActivation}`;
+    const otp = this.tokenGenerationService.generateOtp(otpScope);
     const emailVerification = this.createEmailVerification(user, otp);
-    const passwordHash = await this.generatePasswordHash(passaword);
 
     await this.unitOfWorkService.withTransaction(async (tx) => {
-      await this.EmailPasswordCredentialRepository.updateHashPassword({
+      await this.emailVerificationRepository.invalidateAllActive({
+        purpose: Purpose.AccountActivation,
         userId: user.id,
-        passwordHash,
         db: tx,
       });
-      await this.emailVerificationRepository.markAsUsed(user.id, tx);
       await this.emailVerificationRepository.create(emailVerification, tx);
     });
 
@@ -114,23 +92,20 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
 
   async execute(params: RegisterUsingEmailRequestDto) {
     const normalizedEmail = params.email.trim().toLowerCase();
-    const existing = await this.userRepository.findByEmail(normalizedEmail);
 
+    const existing = await this.userRepository.findByEmail(normalizedEmail);
     const isUserAlreadyActivated =
       existing &&
       (existing.status === UserStatus.Active ||
         existing.status === UserStatus.PendingApproval);
-    if (isUserAlreadyActivated) {
+    if (isUserAlreadyActivated)
       throw new ConflictException({
         message: 'Registration could not be completed.',
       });
-    }
 
     const isUserPendingEmailVerification =
       existing && existing.status === UserStatus.PendingEmailActivation;
-    if (isUserPendingEmailVerification) {
-      return this.resendOtp(existing, params.password);
-    }
+    if (isUserPendingEmailVerification) return this.resendOtp(existing);
 
     const userId = generateId();
     const user = UserModel.create({
@@ -148,10 +123,11 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
       userId: user.id,
     });
 
-    const otp = this.generateOtp();
+    const otpScope = `${user.email}:${Purpose.AccountActivation}`;
+    const otp = this.tokenGenerationService.generateOtp(otpScope);
     const emailVerification = this.createEmailVerification(user, otp);
 
-    const passwordHash = await this.generatePasswordHash(params.password);
+    const passwordHash = await this.hasherService.hash(params.password);
     const credential = EmailPasswordCredentialModel.create({
       userId,
       passwordHash,

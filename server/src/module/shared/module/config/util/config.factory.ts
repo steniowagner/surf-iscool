@@ -15,7 +15,7 @@ export const factory = (): Config => {
     otpSecret: process.env.OTP_SECRET,
     otpLength: process.env.OTP_LENGTH,
     passwordHashPepper: process.env.PASSWORD_HASH_PEPPER,
-    passwordHashRounds: process.env.PASSWORD_HASH_ROUNDS,
+    hashRounds: process.env.HASH_ROUNDS,
     database: {
       host: process.env.DATABASE_HOST,
       port: process.env.DATABASE_PORT,
