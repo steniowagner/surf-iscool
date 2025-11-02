@@ -33,7 +33,7 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
   RegisterUsingEmailResponseDto
 > {
   constructor(
-    private readonly EmailPasswordCredentialRepository: EmailPasswordCredentialRepository,
+    private readonly emailPasswordCredentialRepository: EmailPasswordCredentialRepository,
     private readonly emailVerificationRepository: EmailVerificationRepository,
     private readonly authProviderRepository: AuthProviderRepository,
     private readonly tokenGenerationService: TokenGenerationService,
@@ -136,7 +136,7 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     await this.unitOfWorkService.withTransaction(async (tx) => {
       await this.userRepository.create(user, tx);
       await this.authProviderRepository.create(authProvider, tx);
-      await this.EmailPasswordCredentialRepository.create(credential, tx);
+      await this.emailPasswordCredentialRepository.create(credential, tx);
       await this.emailVerificationRepository.create(emailVerification, tx);
     });
 

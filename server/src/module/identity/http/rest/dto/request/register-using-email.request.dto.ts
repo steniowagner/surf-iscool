@@ -26,7 +26,7 @@ export class RegisterUsingEmailRequestDto {
 
   @IsNotEmpty()
   @IsPhoneNumber('BR', {
-    message: 'phone must be a valid E.164 number (e.g. +5585987654321)',
+    message: 'phone must be a valid E.164 number (e.g. 5585987654321)',
   })
   phone: string;
 
