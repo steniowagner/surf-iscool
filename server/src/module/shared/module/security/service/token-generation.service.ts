@@ -1,6 +1,8 @@
 import { randomBytes, createHmac } from 'crypto';
 import { Injectable } from '@nestjs/common';
 
+import { OTP } from '../types';
+
 type GenerateOtpParams = {
   secret: string;
   length: number;
@@ -9,7 +11,7 @@ type GenerateOtpParams = {
 
 @Injectable()
 export class TokenGenerationService {
-  generateOtp(params: GenerateOtpParams) {
+  generateOtp(params: GenerateOtpParams): OTP {
     const randomBuffer = randomBytes(4);
     const randomValue = randomBuffer.readUint32BE(0) % 1_000_000;
     const code = randomValue.toString().padStart(params.length, '0');

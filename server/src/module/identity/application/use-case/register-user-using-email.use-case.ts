@@ -7,15 +7,16 @@ import { HasherService } from '@shared-modules/security/service/hasher.service';
 import { ConfigService } from '@shared-modules/config/service/config.service';
 import { EmailService } from '@shared-modules/email/service/email.service';
 import { generateId } from '@shared-libs/genereate-id';
+import { OTP } from '@shared-modules/security/types';
 
 import { RegisterUsingEmailResponseDto } from '../../http/rest/dto/response/register-using-email.response.dto';
 import { RegisterUsingEmailRequestDto } from '../../http/rest/dto/request/register-using-email.request.dto';
 import { EmailVerificationRepository } from '../../persistence/repository/email-verification.repository';
-import { CredentialEmailPasswordRepository } from '../../persistence/repository/credential-local.repository';
+import { EmailPasswordCredentialRepository } from '../../persistence/repository/email-password-credential.repository';
 import { AuthProviderRepository } from '../../persistence/repository/auth-provider.repository';
-import { EmailPasswordCredentialModel } from '../../core/model/credential-email-password.model';
+import { EmailPasswordCredentialModel } from '../../core/model/email-password-credential.model';
 import { UserRepository } from '../../persistence/repository/user.repository';
-import { UserModel } from '../../core/model/user.model';
+import { UserModel, UserStatus } from '../../core/model/user.model';
 import {
   EmailVerification,
   Purpose,
@@ -26,19 +27,13 @@ import {
   AuthProviderModel,
 } from '../../core/model/auth-provider.model';
 
-type CreateEmailVerificationProps = {
-  codeHash: string;
-  expiresAt: Date;
-  userId: string;
-};
-
 @Injectable()
 export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
   RegisterUsingEmailRequestDto,
   RegisterUsingEmailResponseDto
 > {
   constructor(
-    private readonly credentialEmailPasswordRepository: CredentialEmailPasswordRepository,
+    private readonly EmailPasswordCredentialRepository: EmailPasswordCredentialRepository,
     private readonly emailVerificationRepository: EmailVerificationRepository,
     private readonly authProviderRepository: AuthProviderRepository,
     private readonly tokenGenerationService: TokenGenerationService,
@@ -72,46 +67,13 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     });
   }
 
-  private createUser(
-    params: RegisterUsingEmailRequestDto,
-    normalizedEmail: string,
-  ) {
-    const userId = generateId();
-    return UserModel.create({
-      firstName: params.firstName,
-      lastName: params.lastName,
-      phone: params.phone,
-      email: normalizedEmail,
-      id: userId,
-    });
-  }
-
-  private createAuthProvider(user: UserModel) {
-    return AuthProviderModel.create({
-      provider: AuthProvider.EmailPassword,
-      providerUserId: user.id,
-      userId: user.id,
-    });
-  }
-
-  private createEmailVerification(params: CreateEmailVerificationProps) {
+  private createEmailVerification(user: UserModel, otp: OTP) {
     return EmailVerification.create({
       purpose: Purpose.AccountActivation,
       tokenType: TokenType.Otp,
-      tokenHash: params.codeHash,
-      expiresAt: params.expiresAt,
-      userId: params.userId,
-    });
-  }
-
-  private async createEmailPasswordCredential(
-    userId: string,
-    password: string,
-  ) {
-    const passwordHash = await this.generatePasswordHash(password);
-    return EmailPasswordCredentialModel.create({
-      userId,
-      passwordHash,
+      tokenHash: otp.codeHash,
+      expiresAt: otp.expiresAt,
+      userId: user.id,
     });
   }
 
@@ -127,36 +89,78 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     });
   }
 
+  private async resendOtp(user: UserModel, passaword: string) {
+    const otp = this.generateOtp();
+    const emailVerification = this.createEmailVerification(user, otp);
+    const passwordHash = await this.generatePasswordHash(passaword);
+
+    await this.unitOfWorkService.withTransaction(async (tx) => {
+      await this.EmailPasswordCredentialRepository.updateHashPassword({
+        userId: user.id,
+        passwordHash,
+        db: tx,
+      });
+      await this.emailVerificationRepository.markAsUsed(user.id, tx);
+      await this.emailVerificationRepository.create(emailVerification, tx);
+    });
+
+    await this.sendOtpEmail(user, otp.code);
+
+    return {
+      activationEmailSent: true,
+      expiresAt: otp.expiresAt,
+    };
+  }
+
   async execute(params: RegisterUsingEmailRequestDto) {
     const normalizedEmail = params.email.trim().toLowerCase();
     const existing = await this.userRepository.findByEmail(normalizedEmail);
-    if (existing) {
+
+    const isUserAlreadyActivated =
+      existing &&
+      (existing.status === UserStatus.Active ||
+        existing.status === UserStatus.PendingApproval);
+    if (isUserAlreadyActivated) {
       throw new ConflictException({
         message: 'Registration could not be completed.',
       });
     }
 
-    const user = this.createUser(params, normalizedEmail);
+    const isUserPendingEmailVerification =
+      existing && existing.status === UserStatus.PendingEmailActivation;
+    if (isUserPendingEmailVerification) {
+      return this.resendOtp(existing, params.password);
+    }
 
-    const authProvider = this.createAuthProvider(user);
+    const userId = generateId();
+    const user = UserModel.create({
+      status: UserStatus.PendingEmailActivation,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      phone: params.phone,
+      email: normalizedEmail,
+      id: userId,
+    });
 
-    const otp = this.generateOtp();
-
-    const emailVerification = this.createEmailVerification({
-      codeHash: otp.codeHash,
-      expiresAt: otp.expiresAt,
+    const authProvider = AuthProviderModel.create({
+      provider: AuthProvider.EmailPassword,
+      providerUserId: user.id,
       userId: user.id,
     });
 
-    const credential = await this.createEmailPasswordCredential(
-      user.id,
-      params.password,
-    );
+    const otp = this.generateOtp();
+    const emailVerification = this.createEmailVerification(user, otp);
+
+    const passwordHash = await this.generatePasswordHash(params.password);
+    const credential = EmailPasswordCredentialModel.create({
+      userId,
+      passwordHash,
+    });
 
     await this.unitOfWorkService.withTransaction(async (tx) => {
       await this.userRepository.create(user, tx);
       await this.authProviderRepository.create(authProvider, tx);
-      await this.credentialEmailPasswordRepository.create(credential, tx);
+      await this.EmailPasswordCredentialRepository.create(credential, tx);
       await this.emailVerificationRepository.create(emailVerification, tx);
     });
 

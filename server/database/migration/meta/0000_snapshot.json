@@ -1,5 +1,5 @@
 {
-  "id": "3b339f6c-e348-4235-8a13-09920b5be527",
+  "id": "8f6f1596-399a-4479-ac97-d5787baadc84",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -441,6 +441,7 @@
       "name": "user_status",
       "schema": "public",
       "values": [
+        "PENDING_EMAIL_ACTIVATION",
         "PENDING_APPROVAL",
         "ACTIVE",
         "DEACTIVATED",

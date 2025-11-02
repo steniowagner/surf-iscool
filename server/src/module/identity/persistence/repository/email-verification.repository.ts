@@ -1,6 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { desc, eq, InferSelectModel } from 'drizzle-orm';
+import { PgTransaction } from 'drizzle-orm/pg-core';
 import { Inject, Injectable } from '@nestjs/common';
-import { InferSelectModel } from 'drizzle-orm';
 
 import { DefaultRepository } from '@shared-modules/persistence/repository/default.repository';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
@@ -22,6 +23,37 @@ export class EmailVerificationRepository extends DefaultRepository<
   ) {
     super(db, emailVerifications, logger);
   }
+
+  async markAsUsed(
+    userId: string,
+    db:
+      | PostgresJsDatabase<Record<string, unknown>>
+      | PgTransaction<any, any, any> = this.db,
+  ) {
+    try {
+      const [{ id }] = await db
+        .select({ id: this.table.id })
+        .from(this.table)
+        .where(eq(this.table.userId, userId))
+        .orderBy(desc(this.table.createdAt))
+        .limit(1);
+
+      const now = new Date();
+      const [updated] = await db
+        .update(this.table)
+        .set({
+          updatedAt: now,
+          usedAt: now,
+        })
+        .where(eq(this.table.id, id))
+        .returning();
+
+      return updated ?? null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   protected mapToModel(
     data: InferSelectModel<typeof emailVerifications>,
   ): EmailVerification {

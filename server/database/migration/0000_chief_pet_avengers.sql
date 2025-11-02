@@ -2,7 +2,7 @@ CREATE TYPE "public"."auth_provider" AS ENUM('EMAIL_PASSWORD', 'FACEBOOK', 'GOOG
 CREATE TYPE "public"."purpose" AS ENUM('ACCOUNT_ACTIVATION', 'PASSWORD_RESET');--> statement-breakpoint
 CREATE TYPE "public"."token_type" AS ENUM('OTP');--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('STUDENT', 'INSTRUCTOR', 'ADMIN');--> statement-breakpoint
-CREATE TYPE "public"."user_status" AS ENUM('PENDING_APPROVAL', 'ACTIVE', 'DEACTIVATED', 'DELETED');--> statement-breakpoint
+CREATE TYPE "public"."user_status" AS ENUM('PENDING_EMAIL_ACTIVATION', 'PENDING_APPROVAL', 'ACTIVE', 'DEACTIVATED', 'DELETED');--> statement-breakpoint
 CREATE TABLE "auth_providers" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,

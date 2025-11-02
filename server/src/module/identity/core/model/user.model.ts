@@ -2,6 +2,7 @@ import { DefaultModel, WithOptional } from '@shared-core/model/default.model';
 import { generateId } from '@shared-libs/genereate-id';
 
 export enum UserStatus {
+  PendingEmailActivation = 'PENDING_EMAIL_ACTIVATION',
   PendingApproval = 'PENDING_APPROVAL',
   Active = 'ACTIVE',
   Deactivated = 'DEACTIVATED',
@@ -31,13 +32,12 @@ export class UserModel extends DefaultModel {
   static create(
     data: WithOptional<
       UserModel,
-      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'status' | 'role'
+      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'role'
     >,
   ) {
     return new UserModel({
       ...data,
       id: data.id ?? generateId(),
-      status: data.status ?? UserStatus.PendingApproval,
       role: data.role ?? UserRole.Student,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),

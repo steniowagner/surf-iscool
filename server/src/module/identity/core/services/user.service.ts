@@ -4,8 +4,6 @@ import { UserRepository } from '@src/module/identity/persistence/repository/user
 import { DomainException } from '@shared-core/exeption/domain.exception';
 import { isEmailValid } from '@shared-libs/is-email-valid';
 
-import { UserModel } from '../model/user.model';
-
 type CreateUserDto = {
   firstName: string;
   lastName?: string;
@@ -18,11 +16,9 @@ type CreateUserDto = {
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async create(user: CreateUserDto) {
+  create(user: CreateUserDto) {
     if (!isEmailValid(user.email)) {
       throw new DomainException(`Invalid email: ${user.email}`);
     }
-
-    const newUser = UserModel.create(user);
   }
 }
