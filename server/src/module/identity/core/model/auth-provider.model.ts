@@ -2,7 +2,7 @@ import { DefaultModel, WithOptional } from '@shared-core/model/default.model';
 import { generateId } from '@shared-libs/genereate-id';
 
 export enum AuthProvider {
-  Password = 'PASSWORD',
+  EmailPassword = 'EMAIL_PASSWORD',
   Facebook = 'FACEBOOK',
   Google = 'GOOGLE',
 }

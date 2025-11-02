@@ -22,7 +22,6 @@ export class EmailVerificationRepository extends DefaultRepository<
   ) {
     super(db, emailVerifications, logger);
   }
-
   protected mapToModel(
     data: InferSelectModel<typeof emailVerifications>,
   ): EmailVerification {

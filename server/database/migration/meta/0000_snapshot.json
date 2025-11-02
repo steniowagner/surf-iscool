@@ -1,5 +1,5 @@
 {
-  "id": "dd96f7cc-9d3b-484f-9314-f0f11a9ecf0b",
+  "id": "3b339f6c-e348-4235-8a13-09920b5be527",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -134,8 +134,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.credentials_local": {
-      "name": "credentials_local",
+    "public.credentials_email_password": {
+      "name": "credentials_email_password",
       "schema": "",
       "columns": {
         "id": {
@@ -173,9 +173,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "credentials_local_user_id_users_id_fk": {
-          "name": "credentials_local_user_id_users_id_fk",
-          "tableFrom": "credentials_local",
+        "credentials_email_password_user_id_users_id_fk": {
+          "name": "credentials_email_password_user_id_users_id_fk",
+          "tableFrom": "credentials_email_password",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -212,6 +212,30 @@
         "token_hash": {
           "name": "token_hash",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_type": {
+          "name": "token_type",
+          "type": "token_type",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "purpose",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_attempts": {
+          "name": "max_attempts",
+          "type": "numeric",
           "primaryKey": false,
           "notNull": true
         },
@@ -384,9 +408,24 @@
       "name": "auth_provider",
       "schema": "public",
       "values": [
-        "PASSWORD",
+        "EMAIL_PASSWORD",
         "FACEBOOK",
         "GOOGLE"
+      ]
+    },
+    "public.purpose": {
+      "name": "purpose",
+      "schema": "public",
+      "values": [
+        "ACCOUNT_ACTIVATION",
+        "PASSWORD_RESET"
+      ]
+    },
+    "public.token_type": {
+      "name": "token_type",
+      "schema": "public",
+      "values": [
+        "OTP"
       ]
     },
     "public.user_role": {

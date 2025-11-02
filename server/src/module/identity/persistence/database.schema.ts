@@ -1,4 +1,4 @@
-import { customType, uniqueIndex } from 'drizzle-orm/pg-core';
+import { uniqueIndex } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 import {
   uuid,
@@ -7,6 +7,7 @@ import {
   boolean,
   pgEnum,
   index,
+  numeric,
 } from 'drizzle-orm/pg-core';
 
 import {
@@ -16,12 +17,23 @@ import {
 import { enumToPgEnum } from '@shared-libs/enum-to-pg-enum';
 
 import { AuthProvider } from '../core/model/auth-provider.model';
+import {
+  Purpose as EmailVerificationPurpose,
+  TokenType,
+} from '../core/model/email-verification.model';
 
 export const userStatusEnum = pgEnum('user_status', enumToPgEnum(UserStatus));
 
 export const userRoleEnum = pgEnum('user_role', enumToPgEnum(UserRole));
 
 export const authProvider = pgEnum('auth_provider', enumToPgEnum(AuthProvider));
+
+export const emailVerificationPurposeEnum = pgEnum(
+  'purpose',
+  EmailVerificationPurpose,
+);
+
+export const emailVerificationTokenTypeEnum = pgEnum('token_type', TokenType);
 
 export const usersTable = pgTable(
   'users',
@@ -75,7 +87,7 @@ export const authProvidersTable = pgTable(
   ],
 );
 
-export const credentialsLocal = pgTable('credentials_local', {
+export const credentialsEmailPassword = pgTable('credentials_email_password', {
   id: uuid('id').primaryKey().notNull(),
   userId: uuid('user_id')
     .notNull()
@@ -97,6 +109,10 @@ export const emailVerifications = pgTable(
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     tokenHash: text('token_hash').notNull(),
+    tokenType: emailVerificationTokenTypeEnum('token_type').notNull(),
+    purpose: emailVerificationPurposeEnum('purpose').notNull(),
+    attempts: numeric('attempts', { mode: 'number' }).notNull(),
+    maxAttempts: numeric('max_attempts', { mode: 'number' }).notNull(),
     expiresAt: timestamp('expire_at', { withTimezone: true }).notNull(),
     usedAt: timestamp('used_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })

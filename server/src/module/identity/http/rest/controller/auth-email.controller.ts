@@ -13,8 +13,8 @@ import { RegisterUserUsingEmailUseCase } from '../../../application/use-case/reg
 import { RegisterUsingEmailRequestDto } from '../dto/request/register-using-email.request.dto';
 import { RegisterUsingEmailResponseDto } from '../dto/response/register-using-email.response.dto';
 
-@Controller('auth/local')
-export class AuthLocalController {
+@Controller('auth/email')
+export class AuthEmailController {
   constructor(
     private readonly registerUserUsingEmailUseCase: RegisterUserUsingEmailUseCase,
   ) {}

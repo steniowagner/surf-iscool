@@ -5,7 +5,7 @@ import { LoggerModule } from '@shared-modules/logger/logger.module';
 
 import { AuthProviderRepository } from './repository/auth-provider.repository';
 import { EmailVerificationRepository } from './repository/email-verification.repository';
-import { CredentialLocalRepository } from './repository/credential-local.repository';
+import { CredentialEmailPasswordRepository } from './repository/credential-local.repository';
 import { UserRepository } from './repository/user.repository';
 import * as schema from './database.schema';
 
@@ -14,14 +14,14 @@ import * as schema from './database.schema';
   providers: [
     AuthProviderRepository,
     UserRepository,
-    CredentialLocalRepository,
+    CredentialEmailPasswordRepository,
     EmailVerificationRepository,
   ],
   exports: [
     PersistenceModule,
     AuthProviderRepository,
     UserRepository,
-    CredentialLocalRepository,
+    CredentialEmailPasswordRepository,
     EmailVerificationRepository,
   ],
 })

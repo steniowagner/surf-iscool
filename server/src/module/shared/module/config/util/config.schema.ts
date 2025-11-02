@@ -14,11 +14,15 @@ export const databaseSchema = z.object({
 
 export const configSchema = z.object({
   env: environmentSchema,
+  database: databaseSchema,
   port: z.coerce.number().positive().int(),
   passwordMinLength: z.coerce.number().positive().int(),
-  passwordHashSalt: z.coerce.number().positive().int(),
   verificationEmailExpirationMinutes: z.coerce.number().positive().int(),
+  verificationEmailMaxAttempts: z.coerce.number().positive().int(),
   resendApiKey: z.string(),
   noReplyEmailSender: z.string(),
-  database: databaseSchema,
+  otpSecret: z.string(),
+  otpLength: z.coerce.number().positive().int(),
+  passwordHashPepper: z.string(),
+  passwordHashRounds: z.coerce.number().positive().int(),
 });

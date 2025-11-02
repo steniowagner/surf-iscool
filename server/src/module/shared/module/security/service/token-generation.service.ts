@@ -1,15 +1,24 @@
-import { createHash, randomBytes } from 'crypto';
+import { randomBytes, createHmac } from 'crypto';
 import { Injectable } from '@nestjs/common';
 
-const DEFAULT_RANDOM_URL_SAFE_BYTES = 48;
+type GenerateOtpParams = {
+  secret: string;
+  length: number;
+  ttl: number;
+};
 
 @Injectable()
 export class TokenGenerationService {
-  randomUrlSafe(bytes = DEFAULT_RANDOM_URL_SAFE_BYTES): string {
-    return randomBytes(bytes).toString('base64url');
-  }
+  generateOtp(params: GenerateOtpParams) {
+    const randomBuffer = randomBytes(4);
+    const randomValue = randomBuffer.readUint32BE(0) % 1_000_000;
+    const code = randomValue.toString().padStart(params.length, '0');
+    const codeHash = createHmac('sha256', params.secret)
+      .update(code)
+      .digest('hex');
 
-  sha256Hex(input: string): string {
-    return createHash('sha256').update(input).digest('hex');
+    const expiresAt = new Date(Date.now() + params.ttl);
+
+    return { code, codeHash, expiresAt };
   }
 }

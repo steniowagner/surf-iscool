@@ -4,11 +4,8 @@ import { Resend } from 'resend';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { ConfigService } from '@shared-modules/config/service/config.service';
 
-import {
-  getEmailTemplate,
-  TemplateId,
-  TemplateParamsById,
-} from '../util/constants';
+import { getEmailTemplate, TemplateParamsById } from '../util/templates';
+import { TemplateId } from '../util/constants';
 
 type SendParams<T extends TemplateId> = {
   userEmail: string;
@@ -34,14 +31,14 @@ export class EmailService {
   async send<T extends TemplateId>(params: SendParams<T>) {
     try {
       const template = getEmailTemplate(params.template)(params.templateParams);
-      const { error } = await this.client.emails.send({
+      const result = await this.client.emails.send({
         from: this.configService.get('noReplyEmailSender'),
         to: [params.userEmail],
         subject: template.subject,
         html: template.html,
       });
-      if (error) {
-        this.handleError(params.userEmail, error);
+      if (result.error) {
+        this.handleError(params.userEmail, result.error);
       }
     } catch (error: any) {
       this.handleError(params.userEmail, error);

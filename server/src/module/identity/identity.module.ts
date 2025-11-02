@@ -6,7 +6,7 @@ import { EmailModule } from '@shared-modules/email/email.module';
 
 import { RegisterUserUsingEmailUseCase } from './application/use-case/register-user-using-email.use-case';
 import { IdentityPersistenceModule } from './persistence/identity-persistence.module';
-import { AuthLocalController } from './http/rest/controller/auth-local.controller';
+import { AuthEmailController } from './http/rest/controller/auth-email.controller';
 
 @Module({
   imports: [
@@ -16,6 +16,6 @@ import { AuthLocalController } from './http/rest/controller/auth-local.controlle
     EmailModule,
   ],
   providers: [RegisterUserUsingEmailUseCase],
-  controllers: [AuthLocalController],
+  controllers: [AuthEmailController],
 })
 export class IdentityModule {}

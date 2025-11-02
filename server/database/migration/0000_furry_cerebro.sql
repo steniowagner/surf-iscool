@@ -1,4 +1,6 @@
-CREATE TYPE "public"."auth_provider" AS ENUM('PASSWORD', 'FACEBOOK', 'GOOGLE');--> statement-breakpoint
+CREATE TYPE "public"."auth_provider" AS ENUM('EMAIL_PASSWORD', 'FACEBOOK', 'GOOGLE');--> statement-breakpoint
+CREATE TYPE "public"."purpose" AS ENUM('ACCOUNT_ACTIVATION', 'PASSWORD_RESET');--> statement-breakpoint
+CREATE TYPE "public"."token_type" AS ENUM('OTP');--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('STUDENT', 'INSTRUCTOR', 'ADMIN');--> statement-breakpoint
 CREATE TYPE "public"."user_status" AS ENUM('PENDING_APPROVAL', 'ACTIVE', 'DEACTIVATED', 'DELETED');--> statement-breakpoint
 CREATE TABLE "auth_providers" (
@@ -11,7 +13,7 @@ CREATE TABLE "auth_providers" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "credentials_local" (
+CREATE TABLE "credentials_email_password" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"password_hash" text NOT NULL,
@@ -23,6 +25,10 @@ CREATE TABLE "email_verifications" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"token_hash" text NOT NULL,
+	"token_type" "token_type" NOT NULL,
+	"purpose" "purpose" NOT NULL,
+	"attempts" numeric NOT NULL,
+	"max_attempts" numeric NOT NULL,
 	"expire_at" timestamp with time zone NOT NULL,
 	"used_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -44,7 +50,7 @@ CREATE TABLE "users" (
 );
 --> statement-breakpoint
 ALTER TABLE "auth_providers" ADD CONSTRAINT "auth_providers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "credentials_local" ADD CONSTRAINT "credentials_local_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "credentials_email_password" ADD CONSTRAINT "credentials_email_password_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "email_verifications" ADD CONSTRAINT "email_verifications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "uq_auth_providers_per_user" ON "auth_providers" USING btree ("user_id","provider");--> statement-breakpoint
 CREATE UNIQUE INDEX "uq_auth_providers_identity" ON "auth_providers" USING btree ("provider","provider_user_id");--> statement-breakpoint
