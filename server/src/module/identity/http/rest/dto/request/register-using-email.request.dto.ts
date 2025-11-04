@@ -5,6 +5,7 @@ import {
   IsString,
   MinLength,
   IsOptional,
+  MaxLength,
 } from 'class-validator';
 
 export class RegisterUsingEmailRequestDto {
@@ -33,5 +34,6 @@ export class RegisterUsingEmailRequestDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(parseInt(process.env.PASSWORD_MIN_LENGTH as string))
+  @MaxLength(parseInt(process.env.PASSWORD_MAX_LENGTH as string))
   password: string;
 }

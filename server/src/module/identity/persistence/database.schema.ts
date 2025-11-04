@@ -113,7 +113,7 @@ export const emailVerifications = pgTable(
     purpose: emailVerificationPurposeEnum('purpose').notNull(),
     attempts: numeric('attempts', { mode: 'number' }).notNull(),
     maxAttempts: numeric('max_attempts', { mode: 'number' }).notNull(),
-    expiresAt: timestamp('expire_at', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     usedAt: timestamp('used_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()

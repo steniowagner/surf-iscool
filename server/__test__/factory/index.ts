@@ -1,1 +1,1 @@
-export { registerUserUsingEmailAndPasswordDto } from './user.factory';
+export * as userFactory from './user.factory';

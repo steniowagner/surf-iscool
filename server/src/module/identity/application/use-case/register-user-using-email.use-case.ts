@@ -18,7 +18,7 @@ import { EmailPasswordCredentialModel } from '../../core/model/email-password-cr
 import { UserRepository } from '../../persistence/repository/user.repository';
 import { UserModel, UserStatus } from '../../core/model/user.model';
 import {
-  EmailVerification,
+  EmailVerificationModel,
   Purpose,
   TokenType,
 } from '../../core/model/email-verification.model';
@@ -47,7 +47,7 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
   }
 
   private createEmailVerification(user: UserModel, otp: OTP) {
-    return EmailVerification.create({
+    return EmailVerificationModel.create({
       purpose: Purpose.AccountActivation,
       tokenType: TokenType.Otp,
       tokenHash: otp.codeHash,

@@ -29,7 +29,8 @@ export const baseSchema = z.object({
   database: databaseSchema,
 
   // Auth policy
-  passwordMinLength: z.coerce.number().int().min(8).max(128),
+  passwordMinLength: z.coerce.number().int().min(8).max(16),
+  passwordMaxLength: z.coerce.number().int().min(16).max(24),
 
   // OTP policy
   verificationEmailExpirationMinutes: z.coerce.number().int().min(1).max(5),

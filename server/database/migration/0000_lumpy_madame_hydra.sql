@@ -29,7 +29,7 @@ CREATE TABLE "email_verifications" (
 	"purpose" "purpose" NOT NULL,
 	"attempts" numeric NOT NULL,
 	"max_attempts" numeric NOT NULL,
-	"expire_at" timestamp with time zone NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
 	"used_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL

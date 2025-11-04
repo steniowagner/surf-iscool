@@ -8,7 +8,7 @@ import { AppLoggerService } from '@shared-modules/logger/service/app-logger.serv
 import { DATABASE } from '@shared-modules/persistence/util/constants';
 
 import {
-  EmailVerification,
+  EmailVerificationModel,
   Purpose,
 } from '../../core/model/email-verification.model';
 import { emailVerifications } from '../database.schema';
@@ -24,7 +24,7 @@ type InvalidateAllActiveParams = {
 
 @Injectable()
 export class EmailVerificationRepository extends DefaultRepository<
-  EmailVerification,
+  EmailVerificationModel,
   typeof emailVerifications
 > {
   constructor(
@@ -65,7 +65,7 @@ export class EmailVerificationRepository extends DefaultRepository<
 
   protected mapToModel(
     data: InferSelectModel<typeof emailVerifications>,
-  ): EmailVerification {
-    return EmailVerification.createFrom(data);
+  ): EmailVerificationModel {
+    return EmailVerificationModel.createFrom(data);
   }
 }

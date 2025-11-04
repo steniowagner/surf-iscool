@@ -7,6 +7,7 @@ export const factory = (): Config => {
     env: process.env.NODE_ENV,
     port: process.env.PORT,
     passwordMinLength: process.env.PASSWORD_MIN_LENGTH,
+    passwordMaxLength: process.env.PASSWORD_MAX_LENGTH,
     verificationEmailExpirationMinutes:
       process.env.VERIFICATION_EMAIL_EXPIRATION_MINUTES,
     verificationEmailMaxAttempts: process.env.EMAIL_VERIFICATION_MAX_ATTEMPTS,

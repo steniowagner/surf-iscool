@@ -6,6 +6,12 @@ import { ConfigService } from '@shared-modules/config/service/config.service';
 
 import { HashException } from '../exception/security.exception';
 
+type CompareParams = {
+  plain: string;
+  storedHash: string;
+  pepper?: string;
+};
+
 @Injectable()
 export class HasherService {
   constructor(private readonly configService: ConfigService) {}
@@ -13,7 +19,7 @@ export class HasherService {
   private prehash(plain: string, pepper: string) {
     if (!plain.length) throw new HashException('Value cannot be empty');
     if (plain.length > 10_000) throw new HashException('Value too long');
-    if (!pepper) throw new HashException('Pepper is required');
+    if (!pepper.length) throw new HashException('Pepper is required');
     const hmac = crypto
       .createHmac('sha256', pepper)
       .update(plain, 'utf8')
@@ -28,9 +34,10 @@ export class HasherService {
     return bcrypt.hash(prehashed, rounds);
   }
 
-  compare(plain: string, storedHash: string) {
-    const pepper = this.configService.get('passwordHashPepper');
-    const prehashed = this.prehash(plain, pepper);
-    return bcrypt.compare(prehashed, storedHash);
+  compare(params: CompareParams) {
+    const pepper =
+      params.pepper ?? this.configService.get('passwordHashPepper');
+    const prehashed = this.prehash(params.plain, pepper);
+    return bcrypt.compare(prehashed, params.storedHash);
   }
 }

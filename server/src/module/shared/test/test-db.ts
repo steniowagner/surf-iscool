@@ -2,6 +2,8 @@ import {
   StartedPostgreSqlContainer,
   PostgreSqlContainer,
 } from '@testcontainers/postgresql';
+import camelcaseKeys from 'camelcase-keys';
+import { snakeCase } from 'lodash';
 import knex, { Knex } from 'knex';
 import path from 'path';
 import fs from 'fs';
@@ -10,11 +12,13 @@ export class TestDb {
   private container: StartedPostgreSqlContainer;
   private knex: Knex;
 
+  constructor(private readonly tables: string[]) {}
+
   get instance(): Knex {
     return this.knex;
   }
 
-  private async handleRunMigrations() {
+  private async runMigrations() {
     const migrationsDir = path.join(
       __dirname,
       '..',
@@ -40,9 +44,7 @@ export class TestDb {
         .filter(Boolean);
 
       await this.knex.transaction(async (trx) => {
-        for (const statement of statements) {
-          await trx.raw(statement);
-        }
+        for (const statement of statements) await trx.raw(statement);
       });
     }
   }
@@ -52,23 +54,35 @@ export class TestDb {
       'postgres:16-alpine',
     ).start();
 
-    const connectionUrl = this.container.getConnectionUri();
-
-    process.env.DATABASE_URL = connectionUrl;
+    process.env.DATABASE_HOST = this.container.getHost();
+    process.env.DATABASE_PORT = this.container.getPort().toString();
+    process.env.DATABASE_USERNAME = this.container.getUsername();
+    process.env.DATABASE_PASSWORD = this.container.getPassword();
+    process.env.DATABASE_NAME = this.container.getDatabase();
 
     this.knex = knex({
-      connection: connectionUrl,
+      connection: this.container.getConnectionUri(),
       pool: { min: 0, max: 5 },
       searchPath: ['public'],
       client: 'pg',
+      wrapIdentifier: (value, origImpl) => origImpl(snakeCase(value)),
+      postProcessResponse: (result) => {
+        if (Array.isArray(result)) {
+          return result.map((row) => camelcaseKeys(row, { deep: true }));
+        }
+        if (result && typeof result === 'object') {
+          return camelcaseKeys(result, { deep: true });
+        }
+        return result;
+      },
     });
 
-    await this.handleRunMigrations();
+    await this.runMigrations();
   }
 
-  async clean(tables: string[]) {
+  async clean() {
     await this.knex.raw('SET CONSTRAINTS ALL DEFERRED');
-    for (const table of tables)
+    for (const table of this.tables)
       await this.knex.raw(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
     await this.knex.raw('SET CONSTRAINTS ALL IMMEDIATE');
   }

@@ -12,7 +12,7 @@ export enum TokenType {
   Otp = 'OTP',
 }
 
-export class EmailVerification extends DefaultModel {
+export class EmailVerificationModel extends DefaultModel {
   userId: string;
   tokenHash: string;
   tokenType: TokenType;
@@ -22,14 +22,14 @@ export class EmailVerification extends DefaultModel {
   expiresAt: Date;
   usedAt: Date | null;
 
-  private constructor(data: EmailVerification) {
+  private constructor(data: EmailVerificationModel) {
     super();
     Object.assign(this, data);
   }
 
   static create(
     data: WithOptional<
-      EmailVerification,
+      EmailVerificationModel,
       | 'id'
       | 'attempts'
       | 'maxAttempts'
@@ -39,7 +39,7 @@ export class EmailVerification extends DefaultModel {
       | 'expiresAt'
     >,
   ) {
-    return new EmailVerification({
+    return new EmailVerificationModel({
       ...data,
       id: data.id ?? generateId(),
       createdAt: data.createdAt ?? new Date(),
@@ -58,7 +58,7 @@ export class EmailVerification extends DefaultModel {
     });
   }
 
-  static createFrom(data: EmailVerification): EmailVerification {
-    return new EmailVerification(data);
+  static createFrom(data: EmailVerificationModel): EmailVerificationModel {
+    return new EmailVerificationModel(data);
   }
 }
