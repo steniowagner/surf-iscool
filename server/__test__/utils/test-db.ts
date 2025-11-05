@@ -23,8 +23,6 @@ export class TestDb {
       __dirname,
       '..',
       '..',
-      '..',
-      '..',
       './database/migration',
     );
 
