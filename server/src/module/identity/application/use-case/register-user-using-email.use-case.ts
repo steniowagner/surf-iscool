@@ -97,7 +97,8 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
     const isUserAlreadyActivated =
       existing &&
       (existing.status === UserStatus.Active ||
-        existing.status === UserStatus.PendingApproval);
+        existing.status === UserStatus.PendingApproval ||
+        existing.status === UserStatus.PendingProfileInformation);
     if (isUserAlreadyActivated)
       throw new ConflictException({
         message: 'Registration could not be completed.',

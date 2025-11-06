@@ -3,6 +3,7 @@ import { generateId } from '@shared-libs/genereate-id';
 
 export enum UserStatus {
   PendingEmailActivation = 'PENDING_EMAIL_ACTIVATION',
+  PendingProfileInformation = 'PENDING_PROFILE_INFORMATION',
   PendingApproval = 'PENDING_APPROVAL',
   Active = 'ACTIVE',
   Deactivated = 'DEACTIVATED',

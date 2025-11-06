@@ -292,6 +292,25 @@ describe('identity/use-case/register-user-using-email', () => {
     expect(secondVerification[1].usedAt).toBeNull();
   });
 
+  it('should throw "ConflictException" when an user with status "PendingProfileInformation" tries to register', async () => {
+    const user = userFactory.makeUser({
+      status: UserStatus.PendingProfileInformation,
+    });
+    await testDbClient.instance(Tables.Users).insert(user);
+
+    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+      email: user.email,
+    });
+    const response = await request(app.getHttpServer())
+      .post('/auth/email')
+      .send(body)
+      .expect(HttpStatus.CONFLICT);
+    expect(response.status).toBe(HttpStatus.CONFLICT);
+    expect(response.body).toEqual({
+      message: 'Registration could not be completed.',
+    });
+  });
+
   it('should throw "ConflictException" when an user with status "ACTIVE" tries to register', async () => {
     const user = userFactory.makeUser({ status: UserStatus.Active });
     await testDbClient.instance(Tables.Users).insert(user);
