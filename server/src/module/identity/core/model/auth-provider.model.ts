@@ -25,9 +25,11 @@ export class AuthProviderModel extends DefaultModel {
     >,
   ) {
     return new AuthProviderModel({
-      ...data,
       id: data.id ?? generateId(),
+      provider: data.provider,
+      providerUserId: data.providerUserId,
       isEmailVerified: data.isEmailVerified ?? false,
+      userId: data.userId,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
     });

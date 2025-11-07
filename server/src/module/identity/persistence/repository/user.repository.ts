@@ -1,13 +1,23 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
+import { PgTransaction } from 'drizzle-orm/pg-core';
 import { eq, InferSelectModel } from 'drizzle-orm';
 
 import { DefaultRepository } from '@shared-modules/persistence/repository/default.repository';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { usersTable } from '@src/module/identity/persistence/database.schema';
 import * as schema from '@src/module/identity/persistence/database.schema';
-import { UserModel } from '@src/module/identity/core/model/user.model';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
+import {
+  UserModel,
+  UserStatus,
+} from '@src/module/identity/core/model/user.model';
+
+type UpdateStatusParams = {
+  db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any>;
+  status: UserStatus;
+  id: string;
+};
 
 @Injectable()
 export class UserRepository extends DefaultRepository<
@@ -28,12 +38,28 @@ export class UserRepository extends DefaultRepository<
 
   async findByEmail(email: string): Promise<UserModel | null> {
     try {
-      const res = await this.db
+      const [row] = await this.db
         .select()
         .from(this.table)
         .where(eq(usersTable.email, email));
-      if (res.length === 0) return null;
-      return this.mapToModel(res[0]);
+
+      return row ? this.mapToModel(row) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async updateStatus({ id, db = this.db, status }: UpdateStatusParams) {
+    try {
+      const [row] = await db
+        .update(this.table)
+        .set({
+          status,
+        })
+        .where(eq(this.table.id, id))
+        .returning();
+
+      return row ? this.mapToModel(row) : null;
     } catch (error) {
       this.handleError(error);
     }

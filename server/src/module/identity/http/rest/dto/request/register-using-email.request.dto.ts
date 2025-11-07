@@ -8,6 +8,10 @@ import {
   MaxLength,
 } from 'class-validator';
 
+import { loadEnv } from '@shared-libs/load-env';
+
+loadEnv();
+
 export class RegisterUsingEmailRequestDto {
   @IsNotEmpty()
   @IsString()

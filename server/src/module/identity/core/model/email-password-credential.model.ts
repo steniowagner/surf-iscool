@@ -17,8 +17,9 @@ export class EmailPasswordCredentialModel extends DefaultModel {
     >,
   ) {
     return new EmailPasswordCredentialModel({
-      ...data,
       id: data.id ?? generateId(),
+      userId: data.userId,
+      passwordHash: data.passwordHash,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
     });

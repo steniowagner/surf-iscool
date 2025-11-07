@@ -19,8 +19,8 @@ import { UserRepository } from '../../persistence/repository/user.repository';
 import { UserModel, UserStatus } from '../../core/model/user.model';
 import {
   EmailVerificationModel,
-  Purpose,
-  TokenType,
+  EmailVerificationPurpose,
+  EmailVerificationTokenType,
 } from '../../core/model/email-verification.model';
 import {
   AuthProvider,
@@ -48,8 +48,8 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
 
   private createEmailVerification(user: UserModel, otp: OTP) {
     return EmailVerificationModel.create({
-      purpose: Purpose.AccountActivation,
-      tokenType: TokenType.Otp,
+      purpose: EmailVerificationPurpose.AccountActivation,
+      tokenType: EmailVerificationTokenType.Otp,
       tokenHash: otp.codeHash,
       expiresAt: otp.expiresAt,
       userId: user.id,
@@ -69,13 +69,13 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
   }
 
   private async resendOtp(user: UserModel) {
-    const otpScope = `${user.email}:${Purpose.AccountActivation}`;
+    const otpScope = `${user.email}:${EmailVerificationPurpose.AccountActivation}`;
     const otp = this.tokenGenerationService.generateOtp(otpScope);
     const emailVerification = this.createEmailVerification(user, otp);
 
     await this.unitOfWorkService.withTransaction(async (tx) => {
       await this.emailVerificationRepository.invalidateAllActive({
-        purpose: Purpose.AccountActivation,
+        purpose: EmailVerificationPurpose.AccountActivation,
         userId: user.id,
         db: tx,
       });
@@ -124,7 +124,7 @@ export class RegisterUserUsingEmailUseCase extends DefaultUseCase<
       userId: user.id,
     });
 
-    const otpScope = `${user.email}:${Purpose.AccountActivation}`;
+    const otpScope = `${user.email}:${EmailVerificationPurpose.AccountActivation}`;
     const otp = this.tokenGenerationService.generateOtp(otpScope);
     const emailVerification = this.createEmailVerification(user, otp);
 

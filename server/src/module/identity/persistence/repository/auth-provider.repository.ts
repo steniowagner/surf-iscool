@@ -1,6 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
-import { InferSelectModel } from 'drizzle-orm';
+import { PgTransaction } from 'drizzle-orm/pg-core';
+import { eq, InferSelectModel } from 'drizzle-orm';
 
 import { DefaultRepository } from '@shared-modules/persistence/repository/default.repository';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
@@ -27,5 +28,26 @@ export class AuthProviderRepository extends DefaultRepository<
     data: InferSelectModel<typeof authProvidersTable>,
   ): AuthProviderModel {
     return AuthProviderModel.createFrom(data);
+  }
+
+  async verifyEmail(
+    userId: string,
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const [row] = await db
+        .update(this.table)
+        .set({
+          updatedAt: new Date(),
+          isEmailVerified: true,
+        })
+        .where(eq(this.table.userId, userId))
+        .returning();
+
+      return row ? this.mapToModel(row) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 }

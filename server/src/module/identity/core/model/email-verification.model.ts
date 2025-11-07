@@ -3,24 +3,25 @@ import { addMinutes } from 'date-fns';
 import { DefaultModel, WithOptional } from '@shared-core/model/default.model';
 import { generateId } from '@shared-libs/genereate-id';
 
-export enum Purpose {
+export enum EmailVerificationPurpose {
   AccountActivation = 'ACCOUNT_ACTIVATION',
   PasswordReset = 'PASSWORD_RESET',
 }
 
-export enum TokenType {
+export enum EmailVerificationTokenType {
   Otp = 'OTP',
 }
 
 export class EmailVerificationModel extends DefaultModel {
   userId: string;
   tokenHash: string;
-  tokenType: TokenType;
-  purpose: Purpose;
+  tokenType: EmailVerificationTokenType;
+  purpose: EmailVerificationPurpose;
   attempts: number;
   maxAttempts: number;
   expiresAt: Date;
   usedAt: Date | null;
+  lastAttemptAt: Date | null;
 
   private constructor(data: EmailVerificationModel) {
     super();
@@ -37,13 +38,15 @@ export class EmailVerificationModel extends DefaultModel {
       | 'updatedAt'
       | 'usedAt'
       | 'expiresAt'
+      | 'lastAttemptAt'
     >,
   ) {
     return new EmailVerificationModel({
-      ...data,
       id: data.id ?? generateId(),
-      createdAt: data.createdAt ?? new Date(),
-      updatedAt: data.updatedAt ?? new Date(),
+      userId: data.userId,
+      tokenHash: data.tokenHash,
+      tokenType: data.tokenType,
+      purpose: data.purpose,
       attempts: data.attempts ?? 0,
       maxAttempts:
         data.maxAttempts ??
@@ -55,6 +58,9 @@ export class EmailVerificationModel extends DefaultModel {
           parseInt(process.env.VERIFICATION_EMAIL_EXPIRATION_MINUTES!),
         ),
       usedAt: data.usedAt ?? null,
+      createdAt: data.createdAt ?? new Date(),
+      updatedAt: data.updatedAt ?? new Date(),
+      lastAttemptAt: data.lastAttemptAt ?? null,
     });
   }
 

@@ -5,6 +5,8 @@ import { ConfigModule } from '@shared-modules/config/config.module';
 import { EmailModule } from '@shared-modules/email/email.module';
 
 import { RegisterUserUsingEmailUseCase } from './application/use-case/register-user-using-email.use-case';
+import { ActivateAccountUsingOtpUseCase } from './application/use-case/activate-account-using-otp.use-case';
+
 import { IdentityPersistenceModule } from './persistence/identity-persistence.module';
 import { AuthEmailController } from './http/rest/controller/auth-email.controller';
 
@@ -15,7 +17,7 @@ import { AuthEmailController } from './http/rest/controller/auth-email.controlle
     SecurityModule,
     EmailModule,
   ],
-  providers: [RegisterUserUsingEmailUseCase],
+  providers: [RegisterUserUsingEmailUseCase, ActivateAccountUsingOtpUseCase],
   controllers: [AuthEmailController],
 })
 export class IdentityModule {}

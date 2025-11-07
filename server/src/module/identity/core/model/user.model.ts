@@ -37,8 +37,13 @@ export class UserModel extends DefaultModel {
     >,
   ) {
     return new UserModel({
-      ...data,
       id: data.id ?? generateId(),
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      avatarUrl: data.avatarUrl,
+      email: data.email,
+      status: data.status,
       role: data.role ?? UserRole.Student,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),

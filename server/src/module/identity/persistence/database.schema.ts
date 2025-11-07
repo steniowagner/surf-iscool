@@ -18,8 +18,8 @@ import { enumToPgEnum } from '@shared-libs/enum-to-pg-enum';
 
 import { AuthProvider } from '../core/model/auth-provider.model';
 import {
-  Purpose as EmailVerificationPurpose,
-  TokenType,
+  EmailVerificationPurpose,
+  EmailVerificationTokenType,
 } from '../core/model/email-verification.model';
 
 export const userStatusEnum = pgEnum('user_status', enumToPgEnum(UserStatus));
@@ -33,7 +33,10 @@ export const emailVerificationPurposeEnum = pgEnum(
   EmailVerificationPurpose,
 );
 
-export const emailVerificationTokenTypeEnum = pgEnum('token_type', TokenType);
+export const emailVerificationTokenTypeEnum = pgEnum(
+  'token_type',
+  EmailVerificationTokenType,
+);
 
 export const usersTable = pgTable(
   'users',
@@ -115,6 +118,7 @@ export const emailVerifications = pgTable(
     maxAttempts: numeric('max_attempts', { mode: 'number' }).notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     usedAt: timestamp('used_at', { withTimezone: true }),
+    lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()
       .notNull(),
