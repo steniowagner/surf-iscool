@@ -23,8 +23,8 @@ import {
 import { EmailPasswordCredentialModel } from '@src/module/identity/core/model/email-password-credential.model';
 import {
   EmailVerificationModel,
-  Purpose,
-  TokenType,
+  EmailVerificationPurpose,
+  EmailVerificationTokenType,
 } from '@src/module/identity/core/model/email-verification.model';
 import { getEmailTemplate } from '@shared-modules/email/util/templates';
 import { ConfigService } from '@shared-modules/config/service/config.service';
@@ -34,10 +34,19 @@ import { EmailVerificationRepository } from '@src/module/identity/persistence/re
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { HasherService } from '@shared-modules/security/service/hasher.service';
 
-import { decodeSecret, isUUID, createTestApp, TestDb } from '../../utils';
+import {
+  decodeSecret,
+  isUUID,
+  createTestApp,
+  TestDb,
+  extractOtpFromEmailTemplate,
+} from '../../utils';
 import { sendEmailMock } from '../../../__mocks__/resend';
 import { Tables } from '../../enum/tables.enum';
-import { userFactory } from '../../factory';
+import {
+  makeRegisterUserUsingEmailAndPasswordDto,
+  makeUser,
+} from '../../factory';
 
 const NOW = new Date('2025-01-01');
 
@@ -80,7 +89,7 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should register an user using e-mail', async () => {
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     const response = await request(app.getHttpServer())
       .post('/auth/email')
       .send(body);
@@ -145,8 +154,10 @@ describe('identity/use-case/register-user-using-email', () => {
     expect(emailVerification.userId).toEqual(user.id);
     expect(typeof emailVerification.tokenHash).toEqual('string');
     expect(!!emailVerification.tokenHash.length).toEqual(true);
-    expect(emailVerification.tokenType).toEqual(TokenType.Otp);
-    expect(emailVerification.purpose).toEqual(Purpose.AccountActivation);
+    expect(emailVerification.tokenType).toEqual(EmailVerificationTokenType.Otp);
+    expect(emailVerification.purpose).toEqual(
+      EmailVerificationPurpose.AccountActivation,
+    );
     expect(emailVerification.attempts).toEqual('0');
     expect(emailVerification.maxAttempts).toEqual(
       process.env.VERIFICATION_EMAIL_MAX_ATTEMPTS,
@@ -159,7 +170,7 @@ describe('identity/use-case/register-user-using-email', () => {
 
   it('should store the email correctly when it is sent upper-case', async () => {
     const email = 'MyEmAiLl@mAIl.com';
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+    const body = makeRegisterUserUsingEmailAndPasswordDto({
       email,
     });
     await request(app.getHttpServer()).post('/auth/email').send(body);
@@ -170,7 +181,7 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should send the otp with the correct template', async () => {
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     await request(app.getHttpServer()).post('/auth/email').send(body);
     // extract otp from the template
     const [code] = /\b\d{6}\b/.exec(
@@ -198,7 +209,7 @@ describe('identity/use-case/register-user-using-email', () => {
 
   it('should persist entities on database when some error happens when sending the otp-email', async () => {
     sendEmailMock.emails.send.mockRejectedValueOnce({});
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(body)
@@ -257,8 +268,10 @@ describe('identity/use-case/register-user-using-email', () => {
     expect(emailVerification.userId).toEqual(user.id);
     expect(typeof emailVerification.tokenHash).toEqual('string');
     expect(!!emailVerification.tokenHash.length).toEqual(true);
-    expect(emailVerification.tokenType).toEqual(TokenType.Otp);
-    expect(emailVerification.purpose).toEqual(Purpose.AccountActivation);
+    expect(emailVerification.tokenType).toEqual(EmailVerificationTokenType.Otp);
+    expect(emailVerification.purpose).toEqual(
+      EmailVerificationPurpose.AccountActivation,
+    );
     expect(emailVerification.attempts).toEqual('0');
     expect(emailVerification.maxAttempts).toEqual(
       process.env.VERIFICATION_EMAIL_MAX_ATTEMPTS,
@@ -270,7 +283,7 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should invalidate active email-verifications when user with status "PENDING_EMAIL_ACTIVATION" tries to register twice', async () => {
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     await request(app.getHttpServer()).post('/auth/email').send(body);
     // create user
     const firstVerification = await testDbClient
@@ -293,12 +306,12 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should throw "ConflictException" when an user with status "PendingProfileInformation" tries to register', async () => {
-    const user = userFactory.makeUser({
+    const user = makeUser({
       status: UserStatus.PendingProfileInformation,
     });
     await testDbClient.instance(Tables.Users).insert(user);
 
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+    const body = makeRegisterUserUsingEmailAndPasswordDto({
       email: user.email,
     });
     const response = await request(app.getHttpServer())
@@ -312,10 +325,10 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should throw "ConflictException" when an user with status "ACTIVE" tries to register', async () => {
-    const user = userFactory.makeUser({ status: UserStatus.Active });
+    const user = makeUser({ status: UserStatus.Active });
     await testDbClient.instance(Tables.Users).insert(user);
 
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+    const body = makeRegisterUserUsingEmailAndPasswordDto({
       email: user.email,
     });
     const response = await request(app.getHttpServer())
@@ -329,9 +342,9 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should throw "ConflictException" when an user with status "PENDING_APPROVAL" tries to register', async () => {
-    const user = userFactory.makeUser({ status: UserStatus.PendingApproval });
+    const user = makeUser({ status: UserStatus.PendingApproval });
     await testDbClient.instance(Tables.Users).insert(user);
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+    const body = makeRegisterUserUsingEmailAndPasswordDto({
       email: user.email,
     });
     const response = await request(app.getHttpServer())
@@ -345,17 +358,17 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should persist "tokenHash" correctly', async () => {
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(body)
       .expect(HttpStatus.CREATED);
     // extract code from html template
     const html = sendEmailMock.emails.send.mock.calls[0][0].html as string;
-    const [code] = html.match(/\b\d{6}\b/) as string[];
+    const code = extractOtpFromEmailTemplate(html) as string;
     expect(code).toBeDefined();
     // setup secret
-    const scope = `${body.email.trim().toLowerCase()}:${Purpose.AccountActivation}`;
+    const scope = `${body.email.trim().toLowerCase()}:${EmailVerificationPurpose.AccountActivation}`;
     const configService = module.get<ConfigService>(ConfigService);
     const secret = decodeSecret(configService.get('otpSecret'));
     // define how the otp-hash should looks like
@@ -374,7 +387,7 @@ describe('identity/use-case/register-user-using-email', () => {
   });
 
   it('should be consistent on the "expiresAt" valeu on both response and database', async () => {
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     // create a new email-verification record
     const response = await request(app.getHttpServer())
       .post('/auth/email')
@@ -403,7 +416,7 @@ describe('identity/use-case/register-user-using-email', () => {
       const spy = jest.spyOn(repo, 'create').mockImplementationOnce(() => {
         throw new Error('simulated failure in transaction');
       });
-      const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+      const body = makeRegisterUserUsingEmailAndPasswordDto();
       // Call the endpoint; expect a 500
       const response = await request(app.getHttpServer())
         .post('/auth/email')
@@ -438,7 +451,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           firstName: undefined,
         }),
       )
@@ -447,7 +460,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           firstName: 1,
         }),
       )
@@ -456,7 +469,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           email: undefined,
         }),
       )
@@ -465,7 +478,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           email: 2,
         }),
       )
@@ -474,7 +487,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           email: 'invalid_email',
         }),
       )
@@ -483,7 +496,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           phone: undefined,
         }),
       )
@@ -492,7 +505,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           phone: 1,
         }),
       )
@@ -501,7 +514,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           phone: '1987654321',
         }),
       )
@@ -510,7 +523,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           password: undefined,
         }),
       )
@@ -519,7 +532,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           password: 1,
         }),
       )
@@ -528,7 +541,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           password: Array(parseInt(process.env.PASSWORD_MIN_LENGTH!, 10) - 1)
             .fill('1')
             .join(''),
@@ -539,7 +552,7 @@ describe('identity/use-case/register-user-using-email', () => {
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(
-        userFactory.makeRegisterUserUsingEmailAndPasswordDto({
+        makeRegisterUserUsingEmailAndPasswordDto({
           password: Array(parseInt(process.env.PASSWORD_MAX_LENGTH!, 10) + 1)
             .fill('1')
             .join(''),
@@ -552,7 +565,7 @@ describe('identity/use-case/register-user-using-email', () => {
     const configService = module.get<ConfigService>(ConfigService);
     const hasherService = module.get<HasherService>(HasherService);
     const hashSpy = jest.spyOn(hasherService, 'hash');
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     await request(app.getHttpServer())
       .post('/auth/email')
       .send(body)
@@ -596,7 +609,7 @@ describe('identity/use-case/register-user-using-email', () => {
     const configService = module.get<ConfigService>(ConfigService);
     const ttlMinutes = configService.get('verificationEmailExpirationMinutes');
     const expectedExpiresAt = new Date(NOW.getTime() + ttlMinutes * 60_000);
-    const body = userFactory.makeRegisterUserUsingEmailAndPasswordDto();
+    const body = makeRegisterUserUsingEmailAndPasswordDto();
     const response = await request(app.getHttpServer())
       .post('/auth/email')
       .send(body)

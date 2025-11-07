@@ -1,1 +1,2 @@
-export * as userFactory from './user.factory';
+export * from './entities.factory';
+export * from './dto.factory';
