@@ -11,6 +11,10 @@ import { UserRole, UserStatus } from '../enum/user.enum';
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
+  async findByIdOrNull(id: string) {
+    return await this.userRepository.findById(id);
+  }
+
   async findById(id: string) {
     const user = await this.userRepository.findById(id);
     if (!user) {

@@ -90,7 +90,7 @@ export abstract class DefaultRepository<
         .from(this.table as unknown as PgTableWithColumns<any>)
         .where(eq(this.table.id, id));
 
-      return row ?? this.mapToModel(row as InferSelectModel<T>);
+      return row ? this.mapToModel(row as InferSelectModel<T>) : null;
     } catch (error) {
       this.handleError(error);
     }

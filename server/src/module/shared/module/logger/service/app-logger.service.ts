@@ -44,7 +44,6 @@ export class AppLoggerService implements LoggerService {
   }
 
   log(message: string, context: ContextType = {}) {
-    console.log('ouaisdhsuada');
     this.logger.info(message, {
       ...context,
       ...this.getDefaultFields(context.exception),

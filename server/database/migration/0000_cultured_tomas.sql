@@ -1,7 +1,7 @@
 CREATE TYPE "public"."user_role" AS ENUM('STUDENT', 'INSTRUCTOR', 'ADMIN');--> statement-breakpoint
 CREATE TYPE "public"."user_status" AS ENUM('PENDING_PROFILE_INFORMATION', 'PENDING_APPROVAL', 'ACTIVE', 'DEACTIVATED', 'DELETED');--> statement-breakpoint
 CREATE TABLE "users" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"first_name" text,
 	"last_name" text,
 	"phone" text,

@@ -1,4 +1,4 @@
-import { uuid, text, timestamp, pgEnum, index } from 'drizzle-orm/pg-core';
+import { text, timestamp, pgEnum, index } from 'drizzle-orm/pg-core';
 import { uniqueIndex } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 
@@ -13,7 +13,7 @@ export const userRoleEnum = pgEnum('user_role', enumToPgEnum(UserRole));
 export const usersTable = pgTable(
   'users',
   {
-    id: uuid('id').primaryKey().notNull(),
+    id: text('id').primaryKey().notNull(),
     firstName: text('first_name'),
     lastName: text('last_name'),
     phone: text('phone'),

@@ -6,25 +6,9 @@ export const factory = (): Config => {
   const result = configSchema.safeParse({
     env: process.env.NODE_ENV,
     port: process.env.PORT,
-    cognitoUserPoolId: process.env.COGNITO_USER_POOL_ID,
-    cognitoWebClientId: process.env.COGNITO_WEB_CLIENT_ID,
-    cognitoMobileClientId: process.env.COGNITO_MOBILE_CLIENT_ID,
-    awsRegion: process.env.AWS_REGION,
-
-    passwordMinLength: process.env.PASSWORD_MIN_LENGTH,
-    passwordMaxLength: process.env.PASSWORD_MAX_LENGTH,
-    verificationEmailExpirationMinutes:
-      process.env.VERIFICATION_EMAIL_EXPIRATION_MINUTES,
-    verificationEmailMaxAttempts: process.env.EMAIL_VERIFICATION_MAX_ATTEMPTS,
-    resendApiKey: process.env.RESEND_API_KEY,
-    noReplyEmailSender: process.env.NO_REPLY_EMAIL_SENDER,
-    otpSecret: process.env.OTP_SECRET,
-    otpLength: process.env.OTP_LENGTH,
-    passwordHashPepper: process.env.PASSWORD_HASH_PEPPER,
-    hashRounds: process.env.HASH_ROUNDS,
-    jwtSecret: process.env.JWT_SECRET,
-    jwtTtlMinutes: process.env.JWT_SECRET,
-    jwtRefreshTokenTtlDays: process.env.JWT_REFRESH_TOKEN_TTL_DAYS,
+    firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+    firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY,
     database: {
       host: process.env.DATABASE_HOST,
       port: process.env.DATABASE_PORT,
