@@ -1,29 +1,15 @@
 import { DefaultModel, WithOptional } from '@shared-core/model/default.model';
-import { generateId } from '@shared-libs/genereate-id';
 
-export enum UserStatus {
-  PendingEmailActivation = 'PENDING_EMAIL_ACTIVATION',
-  PendingProfileInformation = 'PENDING_PROFILE_INFORMATION',
-  PendingApproval = 'PENDING_APPROVAL',
-  Active = 'ACTIVE',
-  Deactivated = 'DEACTIVATED',
-  Deleted = 'DELETED',
-}
-
-export enum UserRole {
-  Student = 'STUDENT',
-  Instructor = 'INSTRUCTOR',
-  Admin = 'ADMIN',
-}
+import { UserRole, UserStatus } from '../enum/user.enum';
 
 export class UserModel extends DefaultModel {
-  firstName: string;
-  lastName?: string | null;
-  phone: string;
-  avatarUrl?: string | null;
   email: string;
   status: UserStatus;
   role: UserRole;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  avatarUrl?: string | null;
 
   private constructor(data: UserModel) {
     super();
@@ -33,18 +19,24 @@ export class UserModel extends DefaultModel {
   static create(
     data: WithOptional<
       UserModel,
-      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'role'
+      | 'role'
+      | 'status'
+      | 'firstName'
+      | 'lastName'
+      | 'phone'
+      | 'avatarUrl'
+      | 'deletedAt'
     >,
   ) {
     return new UserModel({
-      id: data.id ?? generateId(),
+      id: data.id,
+      email: data.email,
+      role: data.role ?? UserRole.Student,
+      status: data.status ?? UserStatus.PendingProfileInformation,
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,
       avatarUrl: data.avatarUrl,
-      email: data.email,
-      status: data.status,
-      role: data.role ?? UserRole.Student,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
       deletedAt: data.deletedAt ?? null,

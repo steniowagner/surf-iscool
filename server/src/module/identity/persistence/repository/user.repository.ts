@@ -8,10 +8,9 @@ import { AppLoggerService } from '@shared-modules/logger/service/app-logger.serv
 import { usersTable } from '@src/module/identity/persistence/database.schema';
 import * as schema from '@src/module/identity/persistence/database.schema';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
-import {
-  UserModel,
-  UserStatus,
-} from '@src/module/identity/core/model/user.model';
+
+import { UserModel } from '../../core/model/user.model';
+import { UserStatus } from '../../core/enum/user.enum';
 
 type UpdateStatusParams = {
   db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any>;
@@ -34,19 +33,6 @@ export class UserRepository extends DefaultRepository<
 
   protected mapToModel(data: InferSelectModel<typeof usersTable>): UserModel {
     return UserModel.createFrom(data);
-  }
-
-  async findByEmail(email: string): Promise<UserModel | null> {
-    try {
-      const [row] = await this.db
-        .select()
-        .from(this.table)
-        .where(eq(usersTable.email, email));
-
-      return row ? this.mapToModel(row) : null;
-    } catch (error) {
-      this.handleError(error);
-    }
   }
 
   async updateStatus({ id, db = this.db, status }: UpdateStatusParams) {

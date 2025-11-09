@@ -28,6 +28,14 @@ export const baseSchema = z.object({
 
   database: databaseSchema,
 
+  // Cognito
+  cognitoUserPoolId: z.string(),
+  cognitoWebClientId: z.string(),
+  cognitoMobileClientId: z.string(),
+
+  // AWS
+  awsRegion: z.string(),
+
   // Auth policy
   passwordMinLength: z.coerce.number().int().min(8).max(16),
   passwordMaxLength: z.coerce.number().int().min(16).max(24),
@@ -40,6 +48,9 @@ export const baseSchema = z.object({
   // Secrets / providers
   noReplyEmailSender: z.email(),
   resendApiKey: z.string().min(16),
+  jwtSecret: z.string().length(88),
+  jwtTtlMinutes: z.coerce.number().positive().int(),
+  jwtRefreshTokenTtlDays: z.coerce.number().positive().int().min(7),
 
   // Bcrypt cost/rounds (centralized)
   hashRounds: z.coerce.number().int().min(10).max(16),
@@ -72,9 +83,14 @@ export const baseSchema = z.object({
 
 export const configSchema = baseSchema.transform((baseConfig) => {
   const otpSecretBytes = decodeSecret(baseConfig.otpSecret.trim());
+  const cognitoIssuer = `https://cognito-idp.${baseConfig.awsRegion}.amazonaws.com/${baseConfig.cognitoUserPoolId}`;
+  const cognitoJwksUri = `${cognitoIssuer}/.well-known/jwks.json`;
+
   return {
     ...baseConfig,
     otpSecretBytes,
+    cognitoIssuer,
+    cognitoJwksUri,
     verificationEmailExpirationMs:
       baseConfig.verificationEmailExpirationMinutes * 60_000,
   };

@@ -69,9 +69,10 @@ export abstract class DefaultRepository<
     db:
       | PostgresJsDatabase<Record<string, unknown>>
       | PgTransaction<any, any, any> = this.db,
-  ): Promise<void> {
+  ): Promise<M> {
     try {
-      await db.insert(this.table).values(model);
+      const entity = await db.insert(this.table).values(model).returning();
+      return this.mapToModel(entity);
     } catch (error) {
       this.handleError(error);
     }
@@ -84,11 +85,12 @@ export abstract class DefaultRepository<
       | PgTransaction<any, any, any> = this.db,
   ): Promise<M | null> {
     try {
-      const res = await db
+      const [row] = await db
         .select()
         .from(this.table as unknown as PgTableWithColumns<any>)
         .where(eq(this.table.id, id));
-      return res.length ? this.mapToModel(res[0] as InferSelectModel<T>) : null;
+
+      return row ?? this.mapToModel(row as InferSelectModel<T>);
     } catch (error) {
       this.handleError(error);
     }
