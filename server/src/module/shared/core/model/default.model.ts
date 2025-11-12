@@ -3,7 +3,7 @@ export type WithOptional<T, K extends keyof T> = Omit<T, K> &
 
 export abstract class DefaultModel {
   readonly id!: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
   deletedAt?: Date | null;
 }

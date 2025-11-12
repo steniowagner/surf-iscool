@@ -8,25 +8,26 @@ import { ConfigModule } from '@shared-modules/config/config.module';
 
 import { FirebaseAuthStrategy } from './strategies/firebase-auth.strategy';
 import { FirebaseAuthService } from './service/firebase-auth.service';
-import { FirebaseAuthGuard } from './guards/firebase-auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 import { AuthService } from './service/auth.service';
 import { RolesGuard } from './guards/roles.guard';
+import { FIREBASE_AUTH_GUARD } from './utils/constants';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: FIREBASE_AUTH_GUARD }),
     ConfigModule.forRoot(),
-    PassportModule.register({ defaultStrategy: 'firebase' }),
     JwtModule.register({}),
   ],
   providers: [
-    AuthService,
     FirebaseAuthStrategy,
-    FirebaseAuthGuard,
     FirebaseAuthService,
+    AuthGuard,
+    AuthService,
     RolesGuard,
     UserService,
     UserRepository,
   ],
-  exports: [FirebaseAuthGuard, RolesGuard],
+  exports: [AuthGuard, RolesGuard],
 })
-export class SecurityModule {}
+export class AuthModule {}

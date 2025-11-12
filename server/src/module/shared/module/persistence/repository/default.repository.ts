@@ -71,8 +71,11 @@ export abstract class DefaultRepository<
       | PgTransaction<any, any, any> = this.db,
   ): Promise<M> {
     try {
-      const entity = await db.insert(this.table).values(model).returning();
-      return this.mapToModel(entity);
+      const entity: T['$inferSelect'][] = await db
+        .insert(this.table)
+        .values(model)
+        .returning();
+      return this.mapToModel(entity[0]);
     } catch (error) {
       this.handleError(error);
     }
