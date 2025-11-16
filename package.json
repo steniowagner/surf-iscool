@@ -1,6 +1,13 @@
 {
+  "packageManager": "pnpm@10.18.3",
   "devDependencies": {
     "turbo": "^2.6.1"
   },
-  "packageManager": "pnpm@10.18.3"
+  "scripts": {
+    "dev:api": "turbo run start:dev --filter=@surf-iscool/api",
+    "dev:mobile": "turbo run start:dev --filter=@surf-iscool/mobile",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  }
 }

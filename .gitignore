@@ -17,9 +17,11 @@ turbo/
 .DS_Store
 
 # Env files
-.env
-.env.*        # keep repo-level envs private
-!.env.example # encourage proper env templates
+# Env files (recursive)
+**/.env
+**/.env.*
+!.env.example
+
 
 # Logs
 logs/
