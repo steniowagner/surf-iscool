@@ -3,6 +3,7 @@
   "references": [
     { "path": "./apps/api" },
     { "path": "./apps/mobile" },
+    { "path": "./apps/web" },
     { "path": "./packages/types" }
   ]
 }

@@ -6,6 +6,7 @@
   "scripts": {
     "dev:api": "turbo run start:dev --filter=@surf-iscool/api",
     "dev:mobile": "turbo run start:dev --filter=@surf-iscool/mobile",
+    "dev:web": "turbo run start:dev --filter=@surf-iscool/web",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test"
