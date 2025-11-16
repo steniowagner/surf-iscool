@@ -26,6 +26,8 @@ export class UserModel extends DefaultModel {
       | 'phone'
       | 'avatarUrl'
       | 'deletedAt'
+      | 'createdAt'
+      | 'updatedAt'
     >,
   ) {
     return new UserModel({

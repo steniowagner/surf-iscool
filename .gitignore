@@ -1,0 +1,169 @@
+################################################################################
+# ROOT / GENERAL
+################################################################################
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Turbo / monorepo
+turbo/
+.vscode/
+.idea/
+.DS_Store
+
+# Env files
+.env
+.env.*        # keep repo-level envs private
+!.env.example # encourage proper env templates
+
+# Logs
+logs/
+*.log
+*.log.*
+debug.log
+
+# Temporary files
+.tmp/
+temp/
+tmp/
+*.tmp
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+################################################################################
+# NESTJS (apps/api/)
+################################################################################
+
+# Builds
+dist/
+build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Debug tools
+*.local
+
+# Nest CLI
+.nest-cli.json
+
+################################################################################
+# NEXT.JS (apps/web/)
+################################################################################
+
+# Build
+.next/
+out/
+.next-cache/
+
+# Turbopack
+.turbo/
+
+# Static exports
+export/
+
+# Next.js cache
+.cache/
+.vercel/
+
+# Environment overrides
+.env.local
+.env.*.local
+
+################################################################################
+# REACT-NATIVE / EXPO (apps/mobile/)
+################################################################################
+
+# Expo
+.expo/
+.expo-shared/
+.expo-web/
+.expo-dev/
+.expo-packager/
+.expo/packager-info.json
+.expo/metro-cache/
+
+# React Native – iOS
+ios/Pods/
+ios/build/
+ios/DerivedData/
+*.xcworkspace
+*.xcuserdata/
+project.xcworkspace/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# React Native – Android
+android/.gradle/
+android/app/build/
+android/.idea/
+android/local.properties
+android/captures/
+android/*.iml
+android/app/*.iml
+android/app/release/
+android/app/debug/
+android/app/profile/
+
+# Watchman / Metro bundler
+.watchmanconfig
+metro-cache/
+.cache/
+
+# Hermes
+*.hprof
+
+# Fastlane
+fastlane/report.xml
+fastlane/screenshots
+fastlane/README.md
+
+################################################################################
+# PACKAGES (shared libs)
+################################################################################
+
+# TS build artifacts for shared packages
+packages/*/dist/
+packages/*/build/
+
+# Test coverage
+coverage/
+
+################################################################################
+# MISC TOOLS
+################################################################################
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettier-cache/
+
+# Local certificates
+*.pem
+
+# Optional: ignore lockfile if using multiple package managers (not recommended)
+# package-lock.json
+# yarn.lock
+
+################################################################################
+# OPTIONAL — Uncomment if needed
+################################################################################
+
+# Ignore local DB files or data used for local dev
+# /data/
+
+# Ignore screenshots or mock assets
+# *.png
+# *.jpg
+# *.jpeg
