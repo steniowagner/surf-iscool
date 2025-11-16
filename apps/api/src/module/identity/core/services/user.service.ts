@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+import { UserRole, UserStatus } from '@surf-iscool/types';
+
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { DomainException } from '@shared-core/exeption/domain.exception';
 import { isEmailValid } from '@shared-libs/is-email-valid';
 
 import { UserModel } from '../model/user.model';
-import { UserRole, UserStatus } from '../enum/user.enum';
 
 @Injectable()
 export class UserService {

@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { type Request } from 'express';
 
-import { UserRole } from '@src/module/identity/core/enum/user.enum';
+import { UserRole } from '@surf-iscool/types';
 
 import { ROLES_KEY } from '../decorators/roles.decorator';
 

@@ -22,6 +22,7 @@
     "db:migrate:dev": "NODE_ENV=dev drizzle-kit migrate --config database/drizzle-migration.config.ts"
   },
   "dependencies": {
+    "@surf-iscool/types": "workspace:*",
     "@faker-js/faker": "9.0.3",
     "@knaadh/nestjs-drizzle-postgres": "^1.2.0",
     "@nestjs/common": "^11.0.1",

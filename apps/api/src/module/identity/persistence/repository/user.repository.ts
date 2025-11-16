@@ -3,6 +3,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PgTransaction } from 'drizzle-orm/pg-core';
 import { eq, InferSelectModel } from 'drizzle-orm';
 
+import { UserStatus } from '@surf-iscool/types';
+
 import { DefaultRepository } from '@shared-modules/persistence/repository/default.repository';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { usersTable } from '@src/module/identity/persistence/database.schema';
@@ -10,7 +12,6 @@ import * as schema from '@src/module/identity/persistence/database.schema';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
 
 import { UserModel } from '../../core/model/user.model';
-import { UserStatus } from '../../core/enum/user.enum';
 
 type UpdateStatusParams = {
   db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any>;

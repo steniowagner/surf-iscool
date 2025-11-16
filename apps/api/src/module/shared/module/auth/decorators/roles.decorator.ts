@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-import { UserRole } from '@src/module/identity/core/enum/user.enum';
+import { UserRole } from '@surf-iscool/types';
 
 export const ROLES_KEY = 'ROLES';
 

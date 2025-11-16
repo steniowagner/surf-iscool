@@ -1,11 +1,11 @@
 import { DefaultModel, WithOptional } from '@shared-core/model/default.model';
 
-import { UserRole, UserStatus } from '../enum/user.enum';
+import { UserStatus, UserRole } from '@surf-iscool/types';
 
 export class UserModel extends DefaultModel {
-  email: string;
-  status: UserStatus;
-  role: UserRole;
+  email!: string;
+  status!: UserStatus;
+  role!: UserRole;
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;

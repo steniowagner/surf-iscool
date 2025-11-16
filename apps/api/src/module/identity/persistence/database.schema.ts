@@ -2,9 +2,9 @@ import { text, timestamp, pgEnum, index } from 'drizzle-orm/pg-core';
 import { uniqueIndex } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 
-import { enumToPgEnum } from '@shared-libs/enum-to-pg-enum';
+import { UserRole, UserStatus } from '@surf-iscool/types';
 
-import { UserRole, UserStatus } from '../core/enum/user.enum';
+import { enumToPgEnum } from '@shared-libs/enum-to-pg-enum';
 
 export const userStatusEnum = pgEnum('user_status', enumToPgEnum(UserStatus));
 
