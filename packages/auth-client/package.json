@@ -1,0 +1,19 @@
+{
+  "name": "@surf-iscool/auth-client",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "pnpm test && tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "packageManager": "pnpm@10.18.3",
+  "dependencies": {
+    "firebase": "^12.6.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "9.0.3",
+    "vitest": "^4.0.14"
+  }
+}
