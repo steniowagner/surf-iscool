@@ -1,8 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-import { AuthClient, SignUpWithEmailParams } from "../types";
-import { signUpWithEmail } from "./email-password";
+import { signUpWithEmail, signInWithEmail } from "./email-password";
+import {
+  AuthClient,
+  SignUpWithEmailParams,
+  SignInWithEmailParams,
+} from "../types";
 
 type URLRedirects = {
   confirmEmail: string;
@@ -21,6 +25,8 @@ export const createWebAuthClient = (config: WebAuthConfig): AuthClient => {
   const auth = getAuth(app);
 
   return {
+    signInWithEmail: async (params: SignInWithEmailParams) =>
+      signInWithEmail(params, auth),
     signUpWithEmail: async (params: SignUpWithEmailParams) =>
       signUpWithEmail(
         {

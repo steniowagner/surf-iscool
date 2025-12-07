@@ -19,6 +19,12 @@ export type SignUpWithEmailParams = {
   password: string;
 };
 
+export type SignInWithEmailParams = {
+  email: string;
+  password: string;
+};
+
 export interface AuthClient {
   signUpWithEmail(params: SignUpWithEmailParams): Promise<AuthSession>;
+  signInWithEmail(params: SignInWithEmailParams): Promise<AuthSession>;
 }

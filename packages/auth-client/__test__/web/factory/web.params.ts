@@ -5,3 +5,8 @@ export const makeSignUpWithEmailParams = () => ({
   password: faker.string.alphanumeric(),
   onConfirmEmailRedirectUrl: faker.internet.url(),
 });
+
+export const makeSignInWithEmailParams = () => ({
+  email: faker.internet.email(),
+  password: faker.string.alphanumeric(),
+});
