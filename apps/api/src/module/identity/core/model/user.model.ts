@@ -10,6 +10,11 @@ export class UserModel extends DefaultModel {
   lastName?: string | null;
   phone?: string | null;
   avatarUrl?: string | null;
+  approvedBy?: string | null;
+  approvedAt?: Date | null;
+  deniedBy?: string | null;
+  deniedAt?: Date | null;
+  denialReason?: string | null;
 
   private constructor(data: UserModel) {
     super();
@@ -25,6 +30,11 @@ export class UserModel extends DefaultModel {
       | 'lastName'
       | 'phone'
       | 'avatarUrl'
+      | 'approvedBy'
+      | 'approvedAt'
+      | 'deniedBy'
+      | 'deniedAt'
+      | 'denialReason'
       | 'deletedAt'
       | 'createdAt'
       | 'updatedAt'
@@ -39,6 +49,11 @@ export class UserModel extends DefaultModel {
       lastName: data.lastName,
       phone: data.phone,
       avatarUrl: data.avatarUrl,
+      approvedBy: data.approvedBy ?? null,
+      approvedAt: data.approvedAt ?? null,
+      deniedBy: data.deniedBy ?? null,
+      deniedAt: data.deniedAt ?? null,
+      denialReason: data.denialReason ?? null,
       createdAt: data.createdAt ?? new Date(),
       updatedAt: data.updatedAt ?? new Date(),
       deletedAt: data.deletedAt ?? null,
