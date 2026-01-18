@@ -10,7 +10,7 @@
   },
   "packageManager": "pnpm@10.18.3",
   "dependencies": {
-    "firebase": "^12.6.0"
+    "@supabase/supabase-js": "^2.49.4"
   },
   "devDependencies": {
     "@faker-js/faker": "9.0.3",

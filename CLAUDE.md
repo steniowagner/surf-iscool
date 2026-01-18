@@ -16,7 +16,7 @@ surf-iscool/
 │   └── mobile/       # Expo 54 mobile app (see apps/mobile/CLAUDE.md)
 ├── packages/
 │   ├── types/        # Shared TypeScript enums (UserStatus, UserRole)
-│   └── auth-client/  # Platform-agnostic Firebase authentication SDK
+│   └── auth-client/  # Platform-agnostic Supabase authentication SDK
 └── docs/
     └── IMPLEMENTATION_PLAN.md  # Full project roadmap
 ```
@@ -58,7 +58,7 @@ enum UserRole {
 
 ## Auth Client (packages/auth-client)
 
-Platform-agnostic Firebase authentication SDK used by both web and mobile:
+Platform-agnostic Supabase authentication SDK used by both web and mobile:
 
 ```bash
 npm run test          # Run tests (Vitest)
@@ -66,7 +66,19 @@ npm run build         # Build (runs tests first)
 ```
 
 Features:
-- `signUpWithEmailAndPassword(email, password)`
-- `signInWithEmailAndPassword(email, password)`
-- Returns `{ token, refreshToken }` on success
-- Throws `AuthClientError` with typed error codes on failure
+- `signUpWithEmail(email, password)` - Create new account
+- `signInWithEmail(email, password)` - Sign in with credentials
+- Returns `{ user, accessToken, refreshToken }` on success
+- Throws error on failure
+
+Usage:
+```typescript
+import { createWebAuthClient } from '@surf-iscool/auth-client';
+
+const authClient = createWebAuthClient({
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+});
+
+const session = await authClient.signInWithEmail({ email, password });
+```

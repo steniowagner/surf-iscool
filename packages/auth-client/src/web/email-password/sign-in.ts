@@ -1,14 +1,25 @@
-import { signInWithEmailAndPassword, type Auth } from "firebase/auth";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { AuthSession, SignUpWithEmailParams } from "../../types";
+import { AuthSession, SignInWithEmailParams } from "../../types";
 import { buildSession } from "../../utils";
 
 export const signInWithEmail = async (
-  params: SignUpWithEmailParams,
-  auth: Auth
+  params: SignInWithEmailParams,
+  supabase: SupabaseClient
 ): Promise<AuthSession> => {
-  await signInWithEmailAndPassword(auth, params.email, params.password);
-  const session = await buildSession(auth);
-  if (!session) throw new Error("No session after sign-in");
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: params.email,
+    password: params.password,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const session = buildSession(data.session, data.user);
+  if (!session) {
+    throw new Error("No session after sign-in");
+  }
+
   return session;
 };

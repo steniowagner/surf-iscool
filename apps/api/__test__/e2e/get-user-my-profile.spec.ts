@@ -4,12 +4,12 @@ import request from 'supertest';
 
 import { loadEnv } from '@shared-libs/load-env';
 loadEnv();
-import { FirebaseAuthService } from '@shared-modules/auth/service/firebase-auth.service';
+import { SupabaseAuthService } from '@shared-modules/auth/service/supabase-auth.service';
 import { UserModel } from '@src/module/identity/core/model/user.model';
 import { IdentityModule } from '@src/module/identity/identity.module';
 import { ConfigModule } from '@shared-modules/config/config.module';
 
-import { makeUser, makeDecodedToken } from '../factory';
+import { makeUser, makeSupabaseUser } from '../factory';
 import { Tables } from '../enum/tables.enum';
 import { TestDb } from '../utils';
 
@@ -27,16 +27,21 @@ describe('identity/routes/get-my-profile', () => {
     const testingModule = await Test.createTestingModule({
       imports: [ConfigModule.forRoot(), IdentityModule],
     })
-      .overrideProvider(FirebaseAuthService)
+      .overrideProvider(SupabaseAuthService)
       .useValue({
-        auth: () => ({
-          verifyIdToken: jest.fn().mockResolvedValue(
-            makeDecodedToken({
-              uid: CURRENT_USER.id,
-              email: CURRENT_USER.email,
+        supabase: {
+          auth: {
+            getUser: jest.fn().mockResolvedValue({
+              data: {
+                user: makeSupabaseUser({
+                  id: CURRENT_USER.id,
+                  email: CURRENT_USER.email,
+                }),
+              },
+              error: null,
             }),
-          ),
-        }),
+          },
+        },
       })
       .compile();
 

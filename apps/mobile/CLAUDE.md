@@ -16,7 +16,7 @@ npm run lint          # Run ESLint
 - **Framework**: Expo 54 (Managed workflow)
 - **React Native**: Latest compatible version
 - **Navigation**: Expo Router (file-based routing)
-- **Auth**: `@surf-iscool/auth-client` (Firebase)
+- **Auth**: `@surf-iscool/auth-client` (Supabase)
 - **Types**: `@surf-iscool/types` (shared enums)
 
 ## Project Structure
@@ -64,20 +64,28 @@ const styles = StyleSheet.create({
 
 ### Authentication with auth-client
 ```typescript
-import { createAuthClient } from '@surf-iscool/auth-client';
+import { createWebAuthClient } from '@surf-iscool/auth-client';
 
-const authClient = createAuthClient({
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY!,
+const authClient = createWebAuthClient({
+  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
+  supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
 });
 
 async function handleSignIn(email: string, password: string) {
   try {
-    const { token } = await authClient.signInWithEmailAndPassword(email, password);
+    const { accessToken } = await authClient.signInWithEmail({ email, password });
     // Store token securely (expo-secure-store)
   } catch (error) {
-    if (error instanceof AuthClientError) {
-      // Handle typed error codes
-    }
+    // Handle error
+  }
+}
+
+async function handleSignUp(email: string, password: string) {
+  try {
+    const { accessToken } = await authClient.signUpWithEmail({ email, password });
+    // Store token securely
+  } catch (error) {
+    // Handle error
   }
 }
 ```
@@ -87,11 +95,11 @@ async function handleSignIn(email: string, password: string) {
 import * as SecureStore from 'expo-secure-store';
 
 async function saveToken(token: string) {
-  await SecureStore.setItemAsync('authToken', token);
+  await SecureStore.setItemAsync('accessToken', token);
 }
 
 async function getToken() {
-  return await SecureStore.getItemAsync('authToken');
+  return await SecureStore.getItemAsync('accessToken');
 }
 ```
 
@@ -134,7 +142,8 @@ router.back();
 ## Environment Variables
 
 ```
-EXPO_PUBLIC_FIREBASE_API_KEY
+EXPO_PUBLIC_SUPABASE_URL
+EXPO_PUBLIC_SUPABASE_ANON_KEY
 EXPO_PUBLIC_API_URL
 ```
 

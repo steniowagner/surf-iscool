@@ -1,57 +1,66 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Auth } from "firebase/auth";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { signInWithEmail } from "../../../src/web/email-password/sign-in";
-
-vi.mock("firebase/auth", () => ({
-  signInWithEmailAndPassword: vi.fn(),
-}));
-
-vi.mock("../../../src/utils", () => ({
-  buildSession: vi.fn(),
-}));
-
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { buildSession } from "../../../src/utils";
-import { makeSession } from "../factory/entities";
+import { makeSupabaseUser, makeSupabaseSession } from "../factory/entities";
 import { makeSignInWithEmailParams } from "../factory/web.params";
 
-const auth = {} as Auth;
-
 describe("WEB/EMAIL-PASSWORD/signInWithEmail", () => {
+  let supabase: SupabaseClient;
+
   beforeEach(() => {
-    vi.resetAllMocks();
+    supabase = {
+      auth: {
+        signInWithPassword: vi.fn(),
+      },
+    } as unknown as SupabaseClient;
   });
 
-  it("should returns session when user exists", async () => {
+  it("should return session when user exists", async () => {
     const params = makeSignInWithEmailParams();
-    const session = makeSession();
+    const user = makeSupabaseUser();
+    const session = makeSupabaseSession();
 
-    (signInWithEmailAndPassword as any).mockResolvedValue();
-    (buildSession as any).mockResolvedValue(session);
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
+      data: { user, session },
+      error: null,
+    });
 
-    const result = await signInWithEmail(params, auth);
+    const result = await signInWithEmail(params, supabase);
 
-    expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
-      auth,
-      params.email,
-      params.password
+    expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: params.email,
+      password: params.password,
+    });
+    expect(result.user.id).toBe(user.id);
+    expect(result.user.email).toBe(user.email);
+    expect(result.accessToken).toBe(session.access_token);
+    expect(result.refreshToken).toBe(session.refresh_token);
+  });
+
+  it("should throw error from supabase", async () => {
+    const params = makeSignInWithEmailParams();
+    const error = new Error("Invalid credentials");
+
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
+      data: { user: null, session: null },
+      error: error as any,
+    });
+
+    await expect(signInWithEmail(params, supabase)).rejects.toBe(error);
+  });
+
+  it("should throw if session is null", async () => {
+    const params = makeSignInWithEmailParams();
+    const user = makeSupabaseUser();
+
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
+      data: { user, session: null },
+      error: null,
+    });
+
+    await expect(signInWithEmail(params, supabase)).rejects.toThrowError(
+      "No session after sign-in"
     );
-    expect(buildSession).toHaveBeenCalledWith(auth);
-    expect(result).toEqual(session);
-  });
-
-  it('should propagate errors from "signInWithEmailAndPassword"', async () => {
-    const params = makeSignInWithEmailParams();
-    (signInWithEmailAndPassword as any).mockRejectedValue();
-
-    expect(() => signInWithEmail(params, auth)).rejects.toThrow();
-  });
-
-  it("should throw if buildSession returns null", async () => {
-    const params = makeSignInWithEmailParams();
-    (signInWithEmailAndPassword as any).mockResolvedValue();
-    (buildSession as any).mockResolvedValue(null);
-
-    expect(signInWithEmail(params, auth)).rejects.toThrow();
   });
 });

@@ -1,1 +1,1 @@
-export const FIREBASE_AUTH_GUARD = 'firebase';
+export const SUPABASE_AUTH_GUARD = 'supabase';

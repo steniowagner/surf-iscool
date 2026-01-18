@@ -22,7 +22,6 @@
     "db:migrate:dev": "NODE_ENV=dev drizzle-kit migrate --config database/drizzle-migration.config.ts"
   },
   "dependencies": {
-    "@surf-iscool/types": "workspace:*",
     "@faker-js/faker": "9.0.3",
     "@knaadh/nestjs-drizzle-postgres": "^1.2.0",
     "@nestjs/common": "^11.0.1",
@@ -31,11 +30,12 @@
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@supabase/supabase-js": "^2.90.1",
+    "@surf-iscool/types": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.6",
-    "firebase-admin": "^13.6.0",
     "nest-winston": "^1.10.2",
     "passport-custom": "^1.1.1",
     "reflect-metadata": "^0.2.2",

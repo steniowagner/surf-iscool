@@ -16,19 +16,8 @@ export const baseSchema = z.object({
   env: environmentSchema,
   port: z.coerce.number().positive().int(),
   database: databaseSchema,
-
-  // Firebase
-  firebaseProjectId: z.string(),
-  firebaseClientEmail: z.string(),
+  supabaseUrl: z.url(),
+  supabaseServiceRoleKey: z.string().min(1),
 });
 
-export const configSchema = baseSchema.transform((baseConfig) => {
-  const firebasePrivateKey = process.env
-    .FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n')
-    .replace(/"/g, '');
-
-  return {
-    ...baseConfig,
-    firebasePrivateKey,
-  };
-});
+export const configSchema = baseSchema;

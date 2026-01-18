@@ -1,6 +1,6 @@
 # API - CLAUDE.md
 
-NestJS 11 backend with PostgreSQL (Drizzle ORM) and Firebase Auth.
+NestJS 11 backend with Supabase (Auth + PostgreSQL via Drizzle ORM).
 
 ## Commands
 
@@ -42,7 +42,7 @@ module/<feature>/
 
 Shared modules in `module/shared/`:
 - **module/config**: Zod-validated environment configuration
-- **module/auth**: Firebase authentication with Passport strategy
+- **module/auth**: Supabase authentication with Passport strategy
 - **module/persistence**: Drizzle connection and DefaultRepository
 - **module/logger**: Winston logging via nest-winston
 - **lib/**: Utility functions (`is-email-valid`, `load-env`)
@@ -137,13 +137,52 @@ export class AuthController {
 - **PersistenceInternalException**: Database operation failures (500)
 - PostgreSQL error codes: 23505 (unique), 23503 (foreign key), 23502 (not-null)
 
+## Supabase Authentication
+
+### Auth Service
+```typescript
+@Injectable()
+export class SupabaseAuthService {
+  private readonly client: SupabaseClient;
+
+  constructor(private readonly configService: ConfigService) {
+    this.client = createClient(
+      configService.get('supabaseUrl'),
+      configService.get('supabaseServiceRoleKey'),
+    );
+  }
+
+  get supabase(): SupabaseClient {
+    return this.client;
+  }
+}
+```
+
+### Auth Strategy
+```typescript
+async validate(req: Request) {
+  const token = extractBearerToken(req);
+
+  const { data: { user }, error } = await this.supabaseAuthService
+    .supabase
+    .auth
+    .getUser(token);
+
+  if (error || !user) {
+    throw new UnauthorizedException('Invalid token');
+  }
+
+  return await this.authService.validateUser(user.id, user.email!);
+}
+```
+
 ## E2E Testing Patterns
 
 ### Basic Structure
 ```typescript
 import { TestDb } from '../utils';
 import { Tables } from '../enum/tables.enum';
-import { makeUser, makeDecodedToken } from '../factory';
+import { makeUser, makeSupabaseUser } from '../factory';
 
 describe('feature/routes/endpoint', () => {
   let app: INestApplication;
@@ -166,33 +205,21 @@ describe('feature/routes/endpoint', () => {
 });
 ```
 
-### Fresh App Per Test Pattern
-When tests need different mocked users, create app inside each test:
+### Supabase Auth Mocking
 ```typescript
-it('should do something as admin', async () => {
-  const adminUser = makeAdminUser();
-  await testDbClient.instance(Tables.Users).insert(adminUser);
-
-  // Create app AFTER inserting data
-  const testingModule = await Test.createTestingModule({
-    imports: [ConfigModule.forRoot(), FeatureModule],
-  })
-    .overrideProvider(FirebaseAuthService)
-    .useValue({
-      auth: () => ({
-        verifyIdToken: jest.fn().mockResolvedValue(
-          makeDecodedToken({ uid: adminUser.id, email: adminUser.email }),
-        ),
+.overrideProvider(SupabaseAuthService)
+.useValue({
+  supabase: {
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: {
+          user: makeSupabaseUser({ id: user.id, email: user.email }),
+        },
+        error: null,
       }),
-    })
-    .compile();
-
-  const app = testingModule.createNestApplication();
-  await app.init();
-
-  await request(app.getHttpServer()).get('/endpoint').expect(200);
-  await app.close();
-});
+    },
+  },
+})
 ```
 
 ### Test Factories
@@ -207,18 +234,13 @@ export const makeUser = (overrides?: Partial<UserModel>) => ({
   deletedAt: null,
   ...overrides,
 });
-```
 
-### Firebase Auth Mocking
-```typescript
-.overrideProvider(FirebaseAuthService)
-.useValue({
-  auth: () => ({
-    verifyIdToken: jest.fn().mockResolvedValue(
-      makeDecodedToken({ uid: user.id, email: user.email }),
-    ),
-  }),
-})
+export const makeSupabaseUser = (overrides: { id?: string; email?: string } = {}) => ({
+  id: overrides.id ?? faker.string.uuid(),
+  email: overrides.email ?? faker.internet.email(),
+  email_confirmed_at: new Date().toISOString(),
+  user_metadata: {},
+});
 ```
 
 ## Import Organization
@@ -241,9 +263,13 @@ export const makeUser = (overrides?: Partial<UserModel>) => ({
 
 ```
 PORT
-DATABASE_HOST, DATABASE_PORT, DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME
-FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
-NODE_ENV (dev, test, prod)
+DATABASE_HOST
+DATABASE_PORT
+DATABASE_USERNAME
+DATABASE_PASSWORD
+DATABASE_NAME
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
 ```
 
 ## Key Notes
@@ -253,3 +279,4 @@ NODE_ENV (dev, test, prod)
 - TestDb uses Knex for direct database access (separate from Drizzle in app)
 - Soft delete uses `deletedAt` timestamp (null = active)
 - User approval flow: PendingProfileInformation → PendingApproval → Approved/Denied
+- Database connects to Supabase PostgreSQL using standard PostgreSQL credentials

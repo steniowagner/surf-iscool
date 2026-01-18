@@ -16,7 +16,7 @@ npm run lint          # Run ESLint
 - **Framework**: Next.js 16 (App Router)
 - **React**: 19
 - **Styling**: Tailwind CSS 4
-- **Auth**: `@surf-iscool/auth-client` (Firebase)
+- **Auth**: `@surf-iscool/auth-client` (Supabase)
 - **Types**: `@surf-iscool/types` (shared enums)
 
 ## Project Structure
@@ -62,20 +62,28 @@ export function Counter() {
 ```typescript
 'use client';
 
-import { createAuthClient } from '@surf-iscool/auth-client';
+import { createWebAuthClient } from '@surf-iscool/auth-client';
 
-const authClient = createAuthClient({
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+const authClient = createWebAuthClient({
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 });
 
 async function handleSignIn(email: string, password: string) {
   try {
-    const { token } = await authClient.signInWithEmailAndPassword(email, password);
+    const { accessToken } = await authClient.signInWithEmail({ email, password });
     // Store token, redirect, etc.
   } catch (error) {
-    if (error instanceof AuthClientError) {
-      // Handle typed error codes
-    }
+    // Handle error
+  }
+}
+
+async function handleSignUp(email: string, password: string) {
+  try {
+    const { accessToken } = await authClient.signUpWithEmail({ email, password });
+    // Store token, redirect, etc.
+  } catch (error) {
+    // Handle error
   }
 }
 ```
@@ -83,7 +91,7 @@ async function handleSignIn(email: string, password: string) {
 ### API Calls
 ```typescript
 async function fetchProfile(token: string) {
-  const response = await fetch('/api/auth/me', {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) throw new Error('Failed to fetch profile');
@@ -103,7 +111,8 @@ async function fetchProfile(token: string) {
 ## Environment Variables
 
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
 NEXT_PUBLIC_API_URL
 ```
 

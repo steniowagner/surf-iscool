@@ -10,7 +10,7 @@ export type AuthUser = {
 
 export type AuthSession = {
   user: AuthUser;
-  idToken: string;
+  accessToken: string;
   refreshToken?: string;
 };
 

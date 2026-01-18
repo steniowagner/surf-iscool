@@ -1,5 +1,4 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 import { signUpWithEmail, signInWithEmail } from "./email-password";
 import {
@@ -8,32 +7,21 @@ import {
   SignInWithEmailParams,
 } from "../types";
 
-type URLRedirects = {
-  confirmEmail: string;
-};
-
 export type WebAuthConfig = {
-  urlRedirects: URLRedirects;
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  appId: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
 };
 
 export const createWebAuthClient = (config: WebAuthConfig): AuthClient => {
-  const app = initializeApp(config);
-  const auth = getAuth(app);
+  const supabase: SupabaseClient = createClient(
+    config.supabaseUrl,
+    config.supabaseAnonKey
+  );
 
   return {
     signInWithEmail: async (params: SignInWithEmailParams) =>
-      signInWithEmail(params, auth),
+      signInWithEmail(params, supabase),
     signUpWithEmail: async (params: SignUpWithEmailParams) =>
-      signUpWithEmail(
-        {
-          ...params,
-          onConfirmEmailRedirectUrl: config.urlRedirects.confirmEmail,
-        },
-        auth
-      ),
+      signUpWithEmail(params, supabase),
   };
 };
