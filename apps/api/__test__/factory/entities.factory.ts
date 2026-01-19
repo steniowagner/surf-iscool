@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker';
 
-import { UserStatus } from '@src/module/identity/core/enum/user.enum';
-import { UserModel } from '@src/module/identity/core/model/user.model';
+import { UserStatus } from '@surf-iscool/types';
 import { generateId } from '@shared-libs/genereate-id';
+import { UserModel } from '@src/module/identity/core/model/user.model';
 
 export const makeUser = (overrides: Partial<UserModel> = {}) =>
   UserModel.create({

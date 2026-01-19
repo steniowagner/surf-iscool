@@ -99,15 +99,15 @@ surf-iscool/
 
 ### Phase 1: Core User Management
 
-**Status**: In Progress
+**Status**: Complete
 
 **Goal**: Establish the foundation for user authentication, authorization, and lifecycle management.
 
 #### 1.1 User Registration & Authentication
-- [ ] Supabase Authentication integration
-- [ ] Email/password sign-up
-- [ ] Social login (Google, Facebook, Apple) - via Supabase
-- [ ] JWT token verification via Passport strategy
+- [x] Supabase Authentication integration
+- [x] Email/password sign-up
+- [x] Social login (Google, Facebook, Apple) - via Supabase
+- [x] JWT token verification via Passport strategy
 
 #### 1.2 User Status Workflow
 ```

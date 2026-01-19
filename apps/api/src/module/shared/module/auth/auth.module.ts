@@ -28,6 +28,6 @@ import { SUPABASE_AUTH_GUARD } from './utils/constants';
     UserService,
     UserRepository,
   ],
-  exports: [AuthGuard, RolesGuard],
+  exports: [AuthGuard, RolesGuard, UserService],
 })
 export class AuthModule {}

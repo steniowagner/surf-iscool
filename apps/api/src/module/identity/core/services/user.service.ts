@@ -8,6 +8,13 @@ import { isEmailValid } from '@shared-libs/is-email-valid';
 
 import { UserModel } from '../model/user.model';
 
+type UpdateProfileParams = {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  avatarUrl?: string;
+};
+
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -36,5 +43,20 @@ export class UserService {
       id,
     });
     return await this.userRepository.create(user);
+  }
+
+  async updateProfile(id: string, data: UpdateProfileParams) {
+    const user = await this.userRepository.updateProfile({
+      id,
+      ...data,
+    });
+    if (!user) throw new DomainException('User not found');
+    return user;
+  }
+
+  async deleteAccount(id: string) {
+    const user = await this.userRepository.softDelete({ id });
+    if (!user) throw new DomainException('User not found');
+    return user;
   }
 }

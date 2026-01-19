@@ -12,7 +12,7 @@ export const makeUser = (overrides: Partial<AuthUser> = {}): AuthUser => ({
 });
 
 export const makeSession = (
-  overrides: Partial<AuthSession> = {}
+  overrides: Partial<AuthSession> = {},
 ): AuthSession => ({
   user: makeUser(overrides.user),
   accessToken: faker.string.alphanumeric(32),
@@ -21,7 +21,7 @@ export const makeSession = (
 });
 
 export const makeSupabaseUser = (
-  overrides: { id?: string; email?: string } = {}
+  overrides: { id?: string; email?: string } = {},
 ) => ({
   id: overrides.id ?? faker.string.uuid(),
   email: overrides.email ?? faker.internet.email(),
@@ -32,9 +32,16 @@ export const makeSupabaseUser = (
   },
 });
 
+type MakeSupabaseSessionOverrides = {
+  access_token?: string;
+  refresh_token?: string;
+  user?: ReturnType<typeof makeSupabaseUser>;
+};
+
 export const makeSupabaseSession = (
-  overrides: { access_token?: string; refresh_token?: string } = {}
+  overrides: MakeSupabaseSessionOverrides = {},
 ) => ({
   access_token: overrides.access_token ?? faker.string.alphanumeric(32),
   refresh_token: overrides.refresh_token ?? faker.string.alphanumeric(32),
+  user: overrides.user ?? makeSupabaseUser(),
 });

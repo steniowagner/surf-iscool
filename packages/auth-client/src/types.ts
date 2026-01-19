@@ -1,4 +1,4 @@
-export type AuthProvider = "password";
+export type AuthProvider = "password" | "google" | "facebook" | "apple";
 
 export type AuthUser = {
   id: string;
@@ -24,7 +24,21 @@ export type SignInWithEmailParams = {
   password: string;
 };
 
+export type OAuthProvider = "google" | "facebook" | "apple";
+
+export type SignInWithOAuthParams = {
+  provider: OAuthProvider;
+  redirectTo?: string;
+};
+
+export type SignInWithOAuthResult = {
+  url: string;
+  provider: OAuthProvider;
+};
+
 export interface AuthClient {
   signUpWithEmail(params: SignUpWithEmailParams): Promise<AuthSession>;
   signInWithEmail(params: SignInWithEmailParams): Promise<AuthSession>;
+  signInWithOAuth(params: SignInWithOAuthParams): Promise<SignInWithOAuthResult>;
+  getSession(): Promise<AuthSession | null>;
 }
