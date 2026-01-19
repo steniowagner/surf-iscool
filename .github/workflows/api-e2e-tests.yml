@@ -1,0 +1,51 @@
+name: API E2E tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "packages/types/**"
+      - "pnpm-lock.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-e2e-tests:
+    name: API E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build --filter=@surf-iscool/types
+
+      - name: Setup Docker
+        run: |
+          docker --version
+          docker pull postgres:16-alpine
+
+      - name: Run API E2E tests
+        run: pnpm --filter @surf-iscool/api run test:e2e
+        env:
+          NODE_ENV: test
+          TESTCONTAINERS_RYUK_DISABLED: true
