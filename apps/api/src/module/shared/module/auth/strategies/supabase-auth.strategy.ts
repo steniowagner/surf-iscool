@@ -24,11 +24,10 @@ export class SupabaseAuthStrategy extends PassportStrategy(
 
   async validate(req: Request) {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer '))
       throw new UnauthorizedException(
         'Missing or invalid Authorization header',
       );
-    }
 
     const accessToken = authHeader.substring('Bearer '.length).trim();
 
