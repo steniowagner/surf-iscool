@@ -1,4 +1,4 @@
-name: API E2E tests
+name: API CI
 
 on:
   pull_request:
@@ -38,6 +38,9 @@ jobs:
 
       - name: Build packages
         run: pnpm run build --filter=@surf-iscool/types
+
+      - name: Build API
+        run: pnpm --filter @surf-iscool/api run build
 
       - name: Setup Docker
         run: |
