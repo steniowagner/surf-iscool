@@ -27,7 +27,7 @@ Surf-IsCool is a scheduling platform that enables:
 - **Students** to browse, request enrollment, and manage their class participation
 
 ### Key Features
-- Social login (Google, Facebook, Apple) and email/password authentication
+- Social login (Google, Facebook, Apple) and email/password authentication via Supabase
 - Admin approval workflow for new users
 - Class scheduling with instructor assignments
 - Student enrollment with approval workflow
@@ -45,17 +45,17 @@ Surf-IsCool is a scheduling platform that enables:
 ```
 surf-iscool/
 ├── apps/
-│   ├── api/          # NestJS backend (PostgreSQL + Drizzle ORM)
+│   ├── api/          # NestJS backend (Supabase PostgreSQL + Drizzle ORM)
 │   ├── web/          # Next.js admin dashboard
 │   └── mobile/       # Expo React Native app
 ├── packages/
 │   ├── types/        # Shared TypeScript enums and types
-│   └── auth-client/  # Platform-agnostic Firebase auth SDK
+│   └── auth-client/  # Platform-agnostic Supabase auth SDK
 └── docs/             # Documentation
 ```
 
 ### Technology Stack
-- **Backend**: NestJS 11, PostgreSQL, Drizzle ORM, Firebase Auth
+- **Backend**: NestJS 11, Supabase (PostgreSQL + Auth), Drizzle ORM
 - **Web**: Next.js 16, React 19, Tailwind CSS 4
 - **Mobile**: Expo 54, React Native
 - **Infrastructure**: Docker, Testcontainers (for E2E tests)
@@ -104,10 +104,10 @@ surf-iscool/
 **Goal**: Establish the foundation for user authentication, authorization, and lifecycle management.
 
 #### 1.1 User Registration & Authentication
-- [x] Firebase Authentication integration
-- [x] Email/password sign-up
-- [x] Social login (Google, Facebook, Apple) - via Firebase
-- [x] JWT token verification via Passport strategy
+- [ ] Supabase Authentication integration
+- [ ] Email/password sign-up
+- [ ] Social login (Google, Facebook, Apple) - via Supabase
+- [ ] JWT token verification via Passport strategy
 
 #### 1.2 User Status Workflow
 ```
@@ -140,7 +140,7 @@ surf-iscool/
 ```
 
 **User Statuses**:
-- `PENDING_PROFILE_INFORMATION`: Initial state after Firebase auth
+- `PENDING_PROFILE_INFORMATION`: Initial state after Supabase auth
 - `PENDING_APPROVAL`: Profile complete, awaiting admin approval
 - `ACTIVE`: Approved and can use the platform
 - `DENIED`: Registration denied by admin
@@ -192,7 +192,7 @@ CREATE TABLE user_role_history (
 ```
 
 #### 1.6 Guards and Decorators
-- `AuthGuard`: Validates Firebase JWT token
+- `AuthGuard`: Validates Supabase JWT token
 - `RolesGuard`: Checks user role against required roles
 - `@Roles(UserRole.Admin)`: Decorator to specify required roles
 - `@CurrentUser()`: Decorator to inject authenticated user
@@ -764,22 +764,22 @@ enum NotificationType {
 PORT=3000
 NODE_ENV=dev|test|prod
 
-# Database
+# Database (Supabase PostgreSQL)
 DATABASE_HOST=
 DATABASE_PORT=5432
 DATABASE_USERNAME=
 DATABASE_PASSWORD=
 DATABASE_NAME=
 
-# Firebase
-FIREBASE_PROJECT_ID=
-FIREBASE_CLIENT_EMAIL=
-FIREBASE_PRIVATE_KEY=
+# Supabase
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
-# Push Notifications (Firebase Cloud Messaging)
-FCM_SERVER_KEY=
+# Push Notifications (Supabase or external service)
+# Configure based on chosen push notification provider
 
-# File Storage (S3/CloudFlare R2)
+# File Storage (Supabase Storage or S3/CloudFlare R2)
 STORAGE_BUCKET=
 STORAGE_ACCESS_KEY=
 STORAGE_SECRET_KEY=
@@ -800,11 +800,11 @@ STORAGE_ENDPOINT=
 
 ## Next Steps
 
-1. **Complete Phase 1**: Fix remaining E2E test issues for admin user management
+1. **Complete Phase 1**: Implement core user management with Supabase Auth
 2. **Begin Phase 2**: Design and implement class/schedule system
 3. **Iterate**: Continue through phases, adjusting based on feedback
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 2.0*
 *Last Updated: January 2025*
