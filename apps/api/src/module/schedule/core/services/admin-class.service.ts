@@ -96,4 +96,22 @@ export class AdminClassService {
 
     return cancelledClass;
   }
+
+  async complete(id: string): Promise<ClassModel> {
+    const existingClass = await this.classRepository.findById(id);
+
+    if (!existingClass) throw new DomainException('Class not found');
+
+    if (existingClass.status === ClassStatus.Completed)
+      throw new DomainException('Class is already completed');
+
+    if (existingClass.status === ClassStatus.Cancelled)
+      throw new DomainException('Cannot complete a cancelled class');
+
+    const completedClass = await this.classRepository.complete({ id });
+
+    if (!completedClass) throw new DomainException('Failed to complete class');
+
+    return completedClass;
+  }
 }
