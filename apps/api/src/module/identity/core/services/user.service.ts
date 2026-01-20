@@ -15,6 +15,13 @@ type UpdateProfileParams = {
   avatarUrl?: string;
 };
 
+type CompleteProfileParams = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  avatarUrl: string;
+};
+
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -51,6 +58,20 @@ export class UserService {
       ...data,
     });
     if (!user) throw new DomainException('User not found');
+    return user;
+  }
+
+  async completeProfile(id: string, data: CompleteProfileParams) {
+    const currentUser = await this.userRepository.findById(id);
+    if (!currentUser) throw new DomainException('User not found');
+    if (currentUser.status !== UserStatus.PendingProfileInformation)
+      throw new DomainException('Not able to complete profile');
+
+    const user = await this.userRepository.completeProfile({
+      id,
+      ...data,
+    });
+    if (!user) throw new DomainException('Failed to complete profile');
     return user;
   }
 

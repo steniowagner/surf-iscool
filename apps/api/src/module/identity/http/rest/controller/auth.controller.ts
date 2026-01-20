@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Delete,
   Body,
@@ -19,6 +20,7 @@ import { RolesGuard } from '@shared-modules/auth/guards/roles.guard';
 import { AuthGuard } from '@shared-modules/auth/guards/auth.guard';
 
 import { UpdateMyProfileRequestDto } from '../dto/request/update-my-profile.request.dto';
+import { CompleteProfileRequestDto } from '../dto/request/complete-profile.request.dto';
 import { GetMyProfileResponseDto } from '../dto/response/get-my-profile.response.dto';
 
 @Controller('auth')
@@ -28,6 +30,19 @@ export class AuthController {
 
   @Get('me')
   getMyProfile(@CurrentUser() profile: UserModel): GetMyProfileResponseDto {
+    return { profile };
+  }
+
+  @Post('complete-profile')
+  @HttpCode(HttpStatus.OK)
+  async completeProfile(
+    @CurrentUser() currentUser: UserModel,
+    @Body() body: CompleteProfileRequestDto,
+  ): Promise<GetMyProfileResponseDto> {
+    const profile = await this.userService.completeProfile(
+      currentUser.id,
+      body,
+    );
     return { profile };
   }
 

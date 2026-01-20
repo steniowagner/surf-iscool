@@ -63,6 +63,15 @@ type ReactivateParams = {
   id: string;
 };
 
+type CompleteProfileParams = {
+  db?: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any>;
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  avatarUrl: string;
+};
+
 @Injectable()
 export class UserRepository extends DefaultRepository<
   UserModel,
@@ -229,6 +238,34 @@ export class UserRepository extends DefaultRepository<
         .set({
           status: UserStatus.PendingApproval,
           deletedAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(this.table.id, id))
+        .returning();
+
+      return row ? this.mapToModel(row) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async completeProfile({
+    id,
+    db = this.db,
+    firstName,
+    lastName,
+    phone,
+    avatarUrl,
+  }: CompleteProfileParams) {
+    try {
+      const [row] = await db
+        .update(this.table)
+        .set({
+          firstName,
+          lastName,
+          phone,
+          avatarUrl,
+          status: UserStatus.PendingApproval,
           updatedAt: new Date(),
         })
         .where(eq(this.table.id, id))
