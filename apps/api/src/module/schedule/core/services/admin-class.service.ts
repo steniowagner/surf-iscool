@@ -27,6 +27,11 @@ type UpdateClassParams = {
   maxCapacity?: number;
 };
 
+type CancelClassParams = {
+  id: string;
+  cancellationReason?: string;
+};
+
 @Injectable()
 export class AdminClassService {
   constructor(private readonly classRepository: ClassRepository) {}
@@ -69,5 +74,26 @@ export class AdminClassService {
     if (!updatedClass) throw new DomainException('Failed to update class');
 
     return updatedClass;
+  }
+
+  async cancel(params: CancelClassParams): Promise<ClassModel> {
+    const existingClass = await this.classRepository.findById(params.id);
+
+    if (!existingClass) throw new DomainException('Class not found');
+
+    if (existingClass.status === ClassStatus.Cancelled)
+      throw new DomainException('Class is already cancelled');
+
+    if (existingClass.status === ClassStatus.Completed)
+      throw new DomainException('Cannot cancel a completed class');
+
+    const cancelledClass = await this.classRepository.cancel({
+      id: params.id,
+      cancellationReason: params.cancellationReason,
+    });
+
+    if (!cancelledClass) throw new DomainException('Failed to cancel class');
+
+    return cancelledClass;
   }
 }
