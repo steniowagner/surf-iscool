@@ -8,7 +8,7 @@ loadEnv();
 
 export default defineConfig({
   schema: schemas,
-  out: __dirname + '/migration',
+  out: './database/migration',
   dialect: 'postgresql',
   dbCredentials: {
     host: process.env.DATABASE_HOST as string,
