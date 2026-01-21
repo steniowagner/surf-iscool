@@ -25,8 +25,10 @@ import { CreateClassRequestDto } from '../dto/request/create-class.request.dto';
 import { UpdateClassRequestDto } from '../dto/request/update-class.request.dto';
 import { CancelClassRequestDto } from '../dto/request/cancel-class.request.dto';
 import { ListClassesQueryDto } from '../dto/request/list-classes.query.dto';
+import { AssignInstructorRequestDto } from '../dto/request/assign-instructor.request.dto';
 import { ClassResponseDto } from '../dto/response/class.response.dto';
 import { ListClassesResponseDto } from '../dto/response/list-classes.response.dto';
+import { ClassInstructorResponseDto } from '../dto/response/class-instructor.response.dto';
 
 @Controller('admin/classes')
 @UseGuards(AuthGuard, RolesGuard)
@@ -105,5 +107,38 @@ export class AdminClassController {
       cancellationReason: body?.cancellationReason,
     });
     return { class: cancelledClass };
+  }
+
+  @Post(':id/complete')
+  @HttpCode(HttpStatus.OK)
+  async complete(@Param('id') id: string): Promise<ClassResponseDto> {
+    const completedClass = await this.adminClassService.complete(id);
+    return { class: completedClass };
+  }
+
+  @Post(':id/instructors')
+  async assignInstructor(
+    @Param('id') classId: string,
+    @Body() body: AssignInstructorRequestDto,
+    @CurrentUser() admin: UserModel,
+  ): Promise<ClassInstructorResponseDto> {
+    const classInstructor = await this.adminClassService.assignInstructor({
+      classId,
+      instructorId: body.instructorId,
+      assignedBy: admin.id,
+    });
+    return { classInstructor };
+  }
+
+  @Delete(':id/instructors/:instructorId')
+  async removeInstructor(
+    @Param('id') classId: string,
+    @Param('instructorId') instructorId: string,
+  ): Promise<ClassInstructorResponseDto> {
+    const classInstructor = await this.adminClassService.removeInstructor({
+      classId,
+      instructorId,
+    });
+    return { classInstructor };
   }
 }

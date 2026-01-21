@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ClassStatus, Discipline, SkillLevel } from '@surf-iscool/types';
 
 import { DomainException } from '@shared-core/exeption/domain.exception';
+import { PersistenceClientException } from '@shared-modules/persistence/exception/storage.exception';
 import { PaginatedResult } from '@shared-libs/pagination';
 import { ClassRepository } from '@src/module/schedule/persistence/repository/class/class.repository';
 import { ClassInstructorRepository } from '@src/module/schedule/persistence/repository/class-instructor.repository';
@@ -177,11 +178,18 @@ export class AdminClassService {
         'Cannot assign instructor to a completed class',
       );
 
-    return await this.classInstructorRepository.create({
-      classId: params.classId,
-      instructorId: params.instructorId,
-      assignedBy: params.assignedBy,
-    });
+    try {
+      return await this.classInstructorRepository.create({
+        classId: params.classId,
+        instructorId: params.instructorId,
+        assignedBy: params.assignedBy,
+      });
+    } catch (error) {
+      if (error instanceof PersistenceClientException)
+        throw new DomainException(error.message);
+
+      throw error;
+    }
   }
 
   async removeInstructor(

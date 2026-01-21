@@ -11,7 +11,7 @@ import { ConfigModule } from '@shared-modules/config/config.module';
 
 import { UserRole, Discipline, SkillLevel, ClassStatus } from '@surf-iscool/types';
 
-import { makeUser, makeSupabaseUser, makeClass } from '../factory';
+import { makeUser, makeSupabaseUser, makeClass, makeClassInstructor } from '../factory';
 import { Tables } from '../enum/tables.enum';
 import { TestDb } from '../utils';
 
@@ -440,6 +440,280 @@ describe('schedule/routes/admin-classes', () => {
 
       await request(app.getHttpServer())
         .post(`/admin/classes/${completedClass.id}/cancel`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('POST /admin/classes/:id/complete', () => {
+    it('should complete a class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const response = await request(app.getHttpServer())
+        .post(`/admin/classes/${classEntity.id}/complete`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.class.status).toBe(ClassStatus.Completed);
+    });
+
+    it('should return BAD_REQUEST for non-existent class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${nonExistentId}/complete`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when completing an already completed class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const completedClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Completed,
+      });
+      await testDbClient.instance(Tables.Classes).insert(completedClass);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${completedClass.id}/complete`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when completing a cancelled class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const cancelledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Cancelled,
+      });
+      await testDbClient.instance(Tables.Classes).insert(cancelledClass);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${cancelledClass.id}/complete`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('POST /admin/classes/:id/instructors', () => {
+    it('should assign an instructor to a class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const response = await request(app.getHttpServer())
+        .post(`/admin/classes/${classEntity.id}/instructors`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ instructorId: instructorUser.id })
+        .expect(HttpStatus.CREATED);
+
+      expect(response.body.classInstructor).toBeDefined();
+      expect(response.body.classInstructor.classId).toBe(classEntity.id);
+      expect(response.body.classInstructor.instructorId).toBe(instructorUser.id);
+      expect(response.body.classInstructor.assignedBy).toBe(adminUser.id);
+    });
+
+    it('should return BAD_REQUEST for non-existent class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${nonExistentId}/instructors`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ instructorId: instructorUser.id })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST for non-existent instructor', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const nonExistentInstructorId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${classEntity.id}/instructors`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ instructorId: nonExistentInstructorId })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when instructor is already assigned', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const existingAssignment = makeClassInstructor({
+        classId: classEntity.id,
+        instructorId: instructorUser.id,
+        assignedBy: adminUser.id,
+      });
+      await testDbClient.instance(Tables.ClassInstructors).insert(existingAssignment);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${classEntity.id}/instructors`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ instructorId: instructorUser.id })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when assigning to a cancelled class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const cancelledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Cancelled,
+      });
+      await testDbClient.instance(Tables.Classes).insert(cancelledClass);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${cancelledClass.id}/instructors`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ instructorId: instructorUser.id })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when assigning to a completed class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const completedClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Completed,
+      });
+      await testDbClient.instance(Tables.Classes).insert(completedClass);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${completedClass.id}/instructors`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ instructorId: instructorUser.id })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('DELETE /admin/classes/:id/instructors/:instructorId', () => {
+    it('should remove an instructor from a class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const assignment = makeClassInstructor({
+        classId: classEntity.id,
+        instructorId: instructorUser.id,
+        assignedBy: adminUser.id,
+      });
+      await testDbClient.instance(Tables.ClassInstructors).insert(assignment);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/admin/classes/${classEntity.id}/instructors/${instructorUser.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.classInstructor).toBeDefined();
+      expect(response.body.classInstructor.classId).toBe(classEntity.id);
+      expect(response.body.classInstructor.instructorId).toBe(instructorUser.id);
+    });
+
+    it('should return BAD_REQUEST for non-existent class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .delete(`/admin/classes/${nonExistentId}/instructors/${instructorUser.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when instructor is not assigned', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      await request(app.getHttpServer())
+        .delete(`/admin/classes/${classEntity.id}/instructors/${instructorUser.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when removing from a cancelled class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const cancelledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Cancelled,
+      });
+      await testDbClient.instance(Tables.Classes).insert(cancelledClass);
+
+      await request(app.getHttpServer())
+        .delete(`/admin/classes/${cancelledClass.id}/instructors/${instructorUser.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when removing from a completed class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const instructorUser = makeUser({ role: UserRole.Instructor });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+
+      const completedClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Completed,
+      });
+      await testDbClient.instance(Tables.Classes).insert(completedClass);
+
+      await request(app.getHttpServer())
+        .delete(`/admin/classes/${completedClass.id}/instructors/${instructorUser.id}`)
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.BAD_REQUEST);
     });
