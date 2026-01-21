@@ -68,4 +68,10 @@ export class AdminClassController {
       totalPages: result.totalPages,
     };
   }
+
+  @Get(':id')
+  async findById(@Param('id') id: string): Promise<ClassResponseDto> {
+    const foundClass = await this.adminClassService.findById(id);
+    return { class: foundClass };
+  }
 }

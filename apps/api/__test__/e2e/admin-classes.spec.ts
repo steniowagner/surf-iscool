@@ -253,4 +253,38 @@ describe('schedule/routes/admin-classes', () => {
       expect(response.body.total).toBe(0);
     });
   });
+
+  describe('GET /admin/classes/:id', () => {
+    it('should return a class by id', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const response = await request(app.getHttpServer())
+        .get(`/admin/classes/${classEntity.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.class).toBeDefined();
+      expect(response.body.class.id).toBe(classEntity.id);
+      expect(response.body.class.discipline).toBe(classEntity.discipline);
+      expect(response.body.class.location).toBe(classEntity.location);
+    });
+
+    it('should return BAD_REQUEST for non-existent class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .get(`/admin/classes/${nonExistentId}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
 });
