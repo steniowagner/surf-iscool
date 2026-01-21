@@ -68,13 +68,21 @@ export class ClassRepository extends DefaultRepository<
   async findAll({
     db = this.db,
     status,
+    discipline,
+    skillLevel,
     startDate,
     endDate,
     page = DEFAULT_PAGE,
     pageSize = DEFAULT_PAGE_SIZE,
   }: FindAllParams = {}): Promise<PaginatedResult<ClassModel>> {
     try {
-      const whereClause = buildWhereClause({ status, startDate, endDate });
+      const whereClause = buildWhereClause({
+        status,
+        discipline,
+        skillLevel,
+        startDate,
+        endDate,
+      });
 
       const total = await getPaginatedCount({
         db,

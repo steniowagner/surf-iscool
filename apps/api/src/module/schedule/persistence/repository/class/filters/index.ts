@@ -3,12 +3,16 @@ import { and, type SQL } from 'drizzle-orm';
 import { classStartDateFilterStrategy } from './strategies/class-start-date-filter.strategy';
 import { classStatusFilterStrategy } from './strategies/class-status-filter.strategy';
 import { classEndDateFilterStrategy } from './strategies/class-end-date-filter.strategy';
+import { classDisciplineFilterStrategy } from './strategies/class-discipline-filter.strategy';
+import { classSkillLevelFilterStrategy } from './strategies/class-skill-level-filter.strategy';
 import { ClassFilterStrategy, ClassFilters } from './types';
 
 const strategies: ClassFilterStrategy[] = [
   classStartDateFilterStrategy,
   classStatusFilterStrategy,
   classEndDateFilterStrategy,
+  classDisciplineFilterStrategy,
+  classSkillLevelFilterStrategy,
 ];
 
 export const buildWhereClause = (

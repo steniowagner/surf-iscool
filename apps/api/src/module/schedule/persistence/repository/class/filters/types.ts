@@ -1,8 +1,10 @@
-import { ClassStatus } from '@surf-iscool/types';
+import { ClassStatus, Discipline, SkillLevel } from '@surf-iscool/types';
 import { type SQL } from 'drizzle-orm';
 
 export type ClassFilters = {
   status?: ClassStatus;
+  discipline?: Discipline;
+  skillLevel?: SkillLevel;
   startDate?: Date;
   endDate?: Date;
 };
