@@ -5,6 +5,7 @@ import {
   Discipline,
   SkillLevel,
   ClassStatus,
+  EnrollmentStatus,
 } from '@surf-iscool/types';
 import { generateId } from '@shared-libs/genereate-id';
 import { UserModel } from '@src/module/identity/core/model/user.model';
@@ -58,5 +59,7 @@ export const makeClassEnrollment = (
     id: generateId(),
     classId: generateId(),
     studentId: generateId(),
+    status: EnrollmentStatus.Pending,
+    isExperimental: false,
     ...overrides,
   });

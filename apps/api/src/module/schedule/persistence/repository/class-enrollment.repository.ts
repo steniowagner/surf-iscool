@@ -1,7 +1,9 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
 import { PgTransaction } from 'drizzle-orm/pg-core';
-import { eq, and, InferSelectModel, count } from 'drizzle-orm';
+import { eq, and, InferSelectModel, count, inArray } from 'drizzle-orm';
+
+import { EnrollmentStatus } from '@surf-iscool/types';
 
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
@@ -23,6 +25,16 @@ type CreateParams = {
   db?: DbInstance;
   classId: string;
   studentId: string;
+  isExperimental?: boolean;
+};
+
+type UpdateStatusParams = {
+  db?: DbInstance;
+  id: string;
+  status: EnrollmentStatus;
+  reviewedBy?: string;
+  denialReason?: string;
+  cancellationReason?: string;
 };
 
 type DeleteParams = {
@@ -74,17 +86,37 @@ export class ClassEnrollmentRepository {
     });
   }
 
-  async create({ db = this.db, classId, studentId }: CreateParams) {
+  async create({
+    db = this.db,
+    classId,
+    studentId,
+    isExperimental = false,
+  }: CreateParams) {
     try {
       const [row] = await db
         .insert(classEnrollmentsTable)
         .values({
           classId,
           studentId,
+          isExperimental,
+          status: EnrollmentStatus.Pending,
         })
         .returning();
 
       return this.mapToModel(row);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async findById(id: string, db: DbInstance = this.db) {
+    try {
+      const [row] = await db
+        .select()
+        .from(classEnrollmentsTable)
+        .where(eq(classEnrollmentsTable.id, id));
+
+      return row ? this.mapToModel(row) : null;
     } catch (error) {
       this.handleError(error);
     }
@@ -138,6 +170,61 @@ export class ClassEnrollmentRepository {
     }
   }
 
+  async findByStatus(statuses: EnrollmentStatus[], db: DbInstance = this.db) {
+    try {
+      const rows = await db
+        .select()
+        .from(classEnrollmentsTable)
+        .where(inArray(classEnrollmentsTable.status, statuses));
+
+      return rows.map((row) => this.mapToModel(row));
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async updateStatus({
+    db = this.db,
+    id,
+    status,
+    reviewedBy,
+    denialReason,
+    cancellationReason,
+  }: UpdateStatusParams) {
+    try {
+      const now = new Date();
+      const updateData: Record<string, unknown> = { status };
+
+      if (
+        status === EnrollmentStatus.Approved ||
+        status === EnrollmentStatus.Denied
+      ) {
+        updateData.reviewedBy = reviewedBy;
+        updateData.reviewedAt = now;
+      }
+
+      if (status === EnrollmentStatus.Denied && denialReason)
+        updateData.denialReason = denialReason;
+
+      if (status === EnrollmentStatus.Cancelled) {
+        updateData.cancelledAt = now;
+        if (cancellationReason) {
+          updateData.cancellationReason = cancellationReason;
+        }
+      }
+
+      const [row] = await db
+        .update(classEnrollmentsTable)
+        .set(updateData)
+        .where(eq(classEnrollmentsTable.id, id))
+        .returning();
+
+      return row ? this.mapToModel(row) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   async delete({ db = this.db, classId, studentId }: DeleteParams) {
     try {
       const [row] = await db
@@ -162,6 +249,28 @@ export class ClassEnrollmentRepository {
         .select({ count: count() })
         .from(classEnrollmentsTable)
         .where(eq(classEnrollmentsTable.classId, classId));
+
+      return result?.count ?? 0;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countByClassIdAndStatuses(
+    classId: string,
+    statuses: EnrollmentStatus[],
+    db: DbInstance = this.db,
+  ) {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(classEnrollmentsTable)
+        .where(
+          and(
+            eq(classEnrollmentsTable.classId, classId),
+            inArray(classEnrollmentsTable.status, statuses),
+          ),
+        );
 
       return result?.count ?? 0;
     } catch (error) {

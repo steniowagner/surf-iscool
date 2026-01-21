@@ -14,3 +14,10 @@ export enum ClassStatus {
   Cancelled = "CANCELLED",
   Completed = "COMPLETED",
 }
+
+export enum EnrollmentStatus {
+  Pending = "PENDING",
+  Approved = "APPROVED",
+  Denied = "DENIED",
+  Cancelled = "CANCELLED",
+}
