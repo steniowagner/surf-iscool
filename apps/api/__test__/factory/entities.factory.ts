@@ -10,6 +10,7 @@ import { generateId } from '@shared-libs/genereate-id';
 import { UserModel } from '@src/module/identity/core/model/user.model';
 import { ClassModel } from '@src/module/schedule/core/model/class.model';
 import { ClassInstructorModel } from '@src/module/schedule/core/model/class-instructor.model';
+import { ClassEnrollmentModel } from '@src/module/schedule/core/model/class-enrollment.model';
 
 export const makeUser = (overrides: Partial<UserModel> = {}) =>
   UserModel.create({
@@ -47,5 +48,15 @@ export const makeClassInstructor = (
     classId: generateId(),
     instructorId: generateId(),
     assignedBy: generateId(),
+    ...overrides,
+  });
+
+export const makeClassEnrollment = (
+  overrides: Partial<ClassEnrollmentModel> = {},
+) =>
+  ClassEnrollmentModel.create({
+    id: generateId(),
+    classId: generateId(),
+    studentId: generateId(),
     ...overrides,
   });

@@ -76,3 +76,27 @@ export const classInstructorsTable = pgTable(
     index('idx_class_instructors_instructor_id').on(table.instructorId),
   ],
 );
+
+export const classEnrollmentsTable = pgTable(
+  'class_enrollments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classesTable.id),
+    studentId: text('student_id')
+      .notNull()
+      .references(() => usersTable.id),
+    enrolledAt: timestamp('enrolled_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_class_enrollments_class_student').on(
+      table.classId,
+      table.studentId,
+    ),
+    index('idx_class_enrollments_class_id').on(table.classId),
+    index('idx_class_enrollments_student_id').on(table.studentId),
+  ],
+);
