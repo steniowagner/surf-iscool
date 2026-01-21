@@ -9,9 +9,9 @@ import { ScheduleModule } from '@src/module/schedule/schedule.module';
 import { IdentityModule } from '@src/module/identity/identity.module';
 import { ConfigModule } from '@shared-modules/config/config.module';
 
-import { UserRole, Discipline, SkillLevel } from '@surf-iscool/types';
+import { UserRole, Discipline, SkillLevel, ClassStatus } from '@surf-iscool/types';
 
-import { makeUser, makeSupabaseUser } from '../factory';
+import { makeUser, makeSupabaseUser, makeClass } from '../factory';
 import { Tables } from '../enum/tables.enum';
 import { TestDb } from '../utils';
 
@@ -163,6 +163,94 @@ describe('schedule/routes/admin-classes', () => {
           discipline: Discipline.Surf,
         })
         .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('GET /admin/classes', () => {
+    it('should list all classes with pagination', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const class1 = makeClass({ createdBy: adminUser.id });
+      const class2 = makeClass({ createdBy: adminUser.id });
+      const class3 = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert([class1, class2, class3]);
+
+      const response = await request(app.getHttpServer())
+        .get('/admin/classes')
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.classes).toHaveLength(3);
+      expect(response.body.total).toBe(3);
+      expect(response.body.page).toBe(1);
+      expect(response.body.pageSize).toBe(15);
+      expect(response.body.totalPages).toBe(1);
+    });
+
+    it('should filter classes by status', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const scheduledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Scheduled,
+      });
+      const cancelledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Cancelled,
+      });
+      await testDbClient
+        .instance(Tables.Classes)
+        .insert([scheduledClass, cancelledClass]);
+
+      const response = await request(app.getHttpServer())
+        .get('/admin/classes')
+        .query({ status: ClassStatus.Scheduled })
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.classes).toHaveLength(1);
+      expect(response.body.classes[0].status).toBe(ClassStatus.Scheduled);
+    });
+
+    it('should paginate results', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classes = Array.from({ length: 5 }, () =>
+        makeClass({ createdBy: adminUser.id }),
+      );
+      await testDbClient.instance(Tables.Classes).insert(classes);
+
+      const response = await request(app.getHttpServer())
+        .get('/admin/classes')
+        .query({ page: 1, pageSize: 2 })
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.classes).toHaveLength(2);
+      expect(response.body.total).toBe(5);
+      expect(response.body.page).toBe(1);
+      expect(response.body.pageSize).toBe(2);
+      expect(response.body.totalPages).toBe(3);
+    });
+
+    it('should return empty array when no classes exist', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const response = await request(app.getHttpServer())
+        .get('/admin/classes')
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.classes).toHaveLength(0);
+      expect(response.body.total).toBe(0);
     });
   });
 });

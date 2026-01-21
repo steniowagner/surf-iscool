@@ -23,8 +23,8 @@ export const makeUser = (overrides: Partial<UserModel> = {}) =>
     ...overrides,
   });
 
-export const makeClass = (overrides: Partial<ClassModel> = {}) =>
-  ClassModel.create({
+export const makeClass = (overrides: Partial<ClassModel> = {}) => {
+  const { deletedAt, ...classData } = ClassModel.create({
     id: generateId(),
     discipline: Discipline.Surf,
     skillLevel: SkillLevel.Beginner,
@@ -36,6 +36,8 @@ export const makeClass = (overrides: Partial<ClassModel> = {}) =>
     createdBy: generateId(),
     ...overrides,
   });
+  return classData;
+};
 
 export const makeClassInstructor = (
   overrides: Partial<ClassInstructorModel> = {},
