@@ -4,4 +4,5 @@ export enum Tables {
   Classes = 'classes',
   ClassInstructors = 'class_instructors',
   ClassEnrollments = 'class_enrollments',
+  CancellationRules = 'cancellation_rules',
 }

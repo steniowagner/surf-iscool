@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
-import { ClassStatus, Discipline, SkillLevel } from '@surf-iscool/types';
+import {
+  ClassStatus,
+  Discipline,
+  SkillLevel,
+  EnrollmentStatus,
+} from '@surf-iscool/types';
 
 import { DomainException } from '@shared-core/exeption/domain.exception';
 import { PersistenceClientException } from '@shared-modules/persistence/exception/storage.exception';
 import { PaginatedResult } from '@shared-libs/pagination';
 import { ClassRepository } from '@src/module/schedule/persistence/repository/class/class.repository';
 import { ClassEnrollmentRepository } from '@src/module/schedule/persistence/repository/class-enrollment.repository';
+import { CancellationRuleRepository } from '@src/module/schedule/persistence/repository/cancellation-rule.repository';
 
 import { ClassModel } from '../model/class.model';
 import { ClassEnrollmentModel } from '../model/class-enrollment.model';
@@ -23,11 +29,13 @@ type ListAvailableParams = {
 type EnrollParams = {
   classId: string;
   studentId: string;
+  isExperimental?: boolean;
 };
 
 type CancelEnrollmentParams = {
   classId: string;
   studentId: string;
+  reason?: string;
 };
 
 type GetMyEnrollmentsParams = {
@@ -41,11 +49,18 @@ export type AvailableClass = ClassModel & {
   spotsRemaining: number;
 };
 
+// Statuses that count toward class capacity
+const ACTIVE_ENROLLMENT_STATUSES = [
+  EnrollmentStatus.Pending,
+  EnrollmentStatus.Approved,
+];
+
 @Injectable()
 export class StudentClassService {
   constructor(
     private readonly classRepository: ClassRepository,
     private readonly classEnrollmentRepository: ClassEnrollmentRepository,
+    private readonly cancellationRuleRepository: CancellationRuleRepository,
   ) {}
 
   async listAvailable(
@@ -64,7 +79,10 @@ export class StudentClassService {
     const classesWithEnrollment = await Promise.all(
       result.data.map(async (classEntity) => {
         const enrollmentCount =
-          await this.classEnrollmentRepository.countByClassId(classEntity.id);
+          await this.classEnrollmentRepository.countByClassIdAndStatuses(
+            classEntity.id,
+            ACTIVE_ENROLLMENT_STATUSES,
+          );
         return {
           ...classEntity,
           enrollmentCount,
@@ -85,7 +103,10 @@ export class StudentClassService {
     if (!existingClass) throw new DomainException('Class not found');
 
     const enrollmentCount =
-      await this.classEnrollmentRepository.countByClassId(id);
+      await this.classEnrollmentRepository.countByClassIdAndStatuses(
+        id,
+        ACTIVE_ENROLLMENT_STATUSES,
+      );
 
     return {
       ...existingClass,
@@ -105,9 +126,11 @@ export class StudentClassService {
     if (existingClass.status === ClassStatus.Completed)
       throw new DomainException('Cannot enroll in a completed class');
 
-    const enrollmentCount = await this.classEnrollmentRepository.countByClassId(
-      params.classId,
-    );
+    const enrollmentCount =
+      await this.classEnrollmentRepository.countByClassIdAndStatuses(
+        params.classId,
+        ACTIVE_ENROLLMENT_STATUSES,
+      );
 
     if (enrollmentCount >= existingClass.maxCapacity)
       throw new DomainException('Class is full');
@@ -116,6 +139,7 @@ export class StudentClassService {
       return await this.classEnrollmentRepository.create({
         classId: params.classId,
         studentId: params.studentId,
+        isExperimental: params.isExperimental,
       });
     } catch (error) {
       if (error instanceof PersistenceClientException)
@@ -142,14 +166,49 @@ export class StudentClassService {
         'Cannot cancel enrollment for a completed class',
       );
 
-    const enrollment = await this.classEnrollmentRepository.delete({
-      classId: params.classId,
-      studentId: params.studentId,
-    });
+    const enrollment =
+      await this.classEnrollmentRepository.findByClassAndStudent(
+        params.classId,
+        params.studentId,
+      );
 
     if (!enrollment) throw new DomainException('Enrollment not found');
 
-    return enrollment;
+    if (enrollment.status === EnrollmentStatus.Cancelled)
+      throw new DomainException('Enrollment already cancelled');
+
+    if (enrollment.status === EnrollmentStatus.Denied)
+      throw new DomainException('Cannot cancel a denied enrollment');
+
+    // Check cancellation rules
+    const activeCancellationRule =
+      await this.cancellationRuleRepository.findActive();
+
+    if (activeCancellationRule) {
+      const now = new Date();
+      const classStartTime = existingClass.scheduledAt;
+      const hoursUntilClass =
+        (classStartTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      if (hoursUntilClass < activeCancellationRule.hoursBeforeClass) {
+        throw new DomainException(
+          `Cancellation not allowed less than ${activeCancellationRule.hoursBeforeClass} hours before class`,
+        );
+      }
+    }
+
+    const updatedEnrollment = await this.classEnrollmentRepository.updateStatus(
+      {
+        id: enrollment.id,
+        status: EnrollmentStatus.Cancelled,
+        cancellationReason: params.reason,
+      },
+    );
+
+    if (!updatedEnrollment)
+      throw new DomainException('Failed to cancel enrollment');
+
+    return updatedEnrollment;
   }
 
   async getMyEnrollments(

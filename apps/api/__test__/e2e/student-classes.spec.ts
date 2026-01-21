@@ -9,13 +9,20 @@ import { ScheduleModule } from '@src/module/schedule/schedule.module';
 import { IdentityModule } from '@src/module/identity/identity.module';
 import { ConfigModule } from '@shared-modules/config/config.module';
 
-import { UserRole, Discipline, SkillLevel, ClassStatus } from '@surf-iscool/types';
+import {
+  UserRole,
+  Discipline,
+  SkillLevel,
+  ClassStatus,
+  EnrollmentStatus,
+} from '@surf-iscool/types';
 
 import {
   makeUser,
   makeSupabaseUser,
   makeClass,
   makeClassEnrollment,
+  makeCancellationRule,
 } from '../factory';
 import { Tables } from '../enum/tables.enum';
 import { TestDb } from '../utils';
@@ -29,6 +36,7 @@ describe('schedule/routes/student-classes', () => {
       Tables.Users,
       Tables.Classes,
       Tables.ClassEnrollments,
+      Tables.CancellationRules,
     ]);
     await testDbClient.init();
   });
@@ -75,10 +83,18 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
-      const class1 = makeClass({ createdBy: adminUser.id, status: ClassStatus.Scheduled });
-      const class2 = makeClass({ createdBy: adminUser.id, status: ClassStatus.Scheduled });
+      const class1 = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Scheduled,
+      });
+      const class2 = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Scheduled,
+      });
       await testDbClient.instance(Tables.Classes).insert([class1, class2]);
 
       const response = await request(app.getHttpServer())
@@ -95,7 +111,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const surfClass = makeClass({
         createdBy: adminUser.id,
@@ -105,7 +123,9 @@ describe('schedule/routes/student-classes', () => {
         createdBy: adminUser.id,
         discipline: Discipline.Skate,
       });
-      await testDbClient.instance(Tables.Classes).insert([surfClass, skateClass]);
+      await testDbClient
+        .instance(Tables.Classes)
+        .insert([surfClass, skateClass]);
 
       const response = await request(app.getHttpServer())
         .get('/classes')
@@ -121,7 +141,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const beginnerClass = makeClass({
         createdBy: adminUser.id,
@@ -131,7 +153,9 @@ describe('schedule/routes/student-classes', () => {
         createdBy: adminUser.id,
         skillLevel: SkillLevel.Advanced,
       });
-      await testDbClient.instance(Tables.Classes).insert([beginnerClass, advancedClass]);
+      await testDbClient
+        .instance(Tables.Classes)
+        .insert([beginnerClass, advancedClass]);
 
       const response = await request(app.getHttpServer())
         .get('/classes')
@@ -147,7 +171,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const scheduledClass = makeClass({
         createdBy: adminUser.id,
@@ -157,7 +183,9 @@ describe('schedule/routes/student-classes', () => {
         createdBy: adminUser.id,
         status: ClassStatus.Cancelled,
       });
-      await testDbClient.instance(Tables.Classes).insert([scheduledClass, cancelledClass]);
+      await testDbClient
+        .instance(Tables.Classes)
+        .insert([scheduledClass, cancelledClass]);
 
       const response = await request(app.getHttpServer())
         .get('/classes')
@@ -172,7 +200,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const scheduledClass = makeClass({
         createdBy: adminUser.id,
@@ -182,7 +212,9 @@ describe('schedule/routes/student-classes', () => {
         createdBy: adminUser.id,
         status: ClassStatus.Completed,
       });
-      await testDbClient.instance(Tables.Classes).insert([scheduledClass, completedClass]);
+      await testDbClient
+        .instance(Tables.Classes)
+        .insert([scheduledClass, completedClass]);
 
       const response = await request(app.getHttpServer())
         .get('/classes')
@@ -197,7 +229,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const classes = Array.from({ length: 5 }, () =>
         makeClass({ createdBy: adminUser.id }),
@@ -221,9 +255,14 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
-      const classEntity = makeClass({ createdBy: adminUser.id, maxCapacity: 10 });
+      const classEntity = makeClass({
+        createdBy: adminUser.id,
+        maxCapacity: 10,
+      });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
 
       const response = await request(app.getHttpServer())
@@ -259,7 +298,10 @@ describe('schedule/routes/student-classes', () => {
         .instance(Tables.Users)
         .insert([adminUser, studentUser, otherStudent]);
 
-      const classEntity = makeClass({ createdBy: adminUser.id, maxCapacity: 10 });
+      const classEntity = makeClass({
+        createdBy: adminUser.id,
+        maxCapacity: 10,
+      });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
 
       const enrollment = makeClassEnrollment({
@@ -283,7 +325,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -320,14 +364,19 @@ describe('schedule/routes/student-classes', () => {
         .instance(Tables.Users)
         .insert([adminUser, studentUser, otherStudent]);
 
-      const classEntity = makeClass({ createdBy: adminUser.id, maxCapacity: 1 });
+      const classEntity = makeClass({
+        createdBy: adminUser.id,
+        maxCapacity: 1,
+      });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
 
       const existingEnrollment = makeClassEnrollment({
         classId: classEntity.id,
         studentId: otherStudent.id,
       });
-      await testDbClient.instance(Tables.ClassEnrollments).insert(existingEnrollment);
+      await testDbClient
+        .instance(Tables.ClassEnrollments)
+        .insert(existingEnrollment);
 
       await request(app.getHttpServer())
         .post(`/classes/${classEntity.id}/enroll`)
@@ -339,7 +388,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -348,7 +399,9 @@ describe('schedule/routes/student-classes', () => {
         classId: classEntity.id,
         studentId: studentUser.id,
       });
-      await testDbClient.instance(Tables.ClassEnrollments).insert(existingEnrollment);
+      await testDbClient
+        .instance(Tables.ClassEnrollments)
+        .insert(existingEnrollment);
 
       await request(app.getHttpServer())
         .post(`/classes/${classEntity.id}/enroll`)
@@ -360,7 +413,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const cancelledClass = makeClass({
         createdBy: adminUser.id,
@@ -378,7 +433,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const completedClass = makeClass({
         createdBy: adminUser.id,
@@ -398,7 +455,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -436,7 +495,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -451,7 +512,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const cancelledClass = makeClass({
         createdBy: adminUser.id,
@@ -469,7 +532,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const completedClass = makeClass({
         createdBy: adminUser.id,
@@ -482,6 +547,129 @@ describe('schedule/routes/student-classes', () => {
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.BAD_REQUEST);
     });
+
+    it('should allow cancellation when class is more than X hours away', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const studentUser = makeUser({ role: UserRole.Student });
+      await setupApp(studentUser);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
+
+      // Class is 48 hours from now
+      const futureDate = new Date();
+      futureDate.setHours(futureDate.getHours() + 48);
+
+      const classEntity = makeClass({
+        createdBy: adminUser.id,
+        scheduledAt: futureDate,
+      });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const enrollment = makeClassEnrollment({
+        classId: classEntity.id,
+        studentId: studentUser.id,
+        status: EnrollmentStatus.Pending,
+      });
+      await testDbClient.instance(Tables.ClassEnrollments).insert(enrollment);
+
+      // Create a 24-hour cancellation rule
+      const cancellationRule = makeCancellationRule({
+        createdBy: adminUser.id,
+        hoursBeforeClass: 24,
+        isActive: true,
+      });
+      await testDbClient
+        .instance(Tables.CancellationRules)
+        .insert(cancellationRule);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/classes/${classEntity.id}/enroll`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.enrollment.status).toBe(EnrollmentStatus.Cancelled);
+    });
+
+    it('should reject cancellation when class is less than X hours away', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const studentUser = makeUser({ role: UserRole.Student });
+      await setupApp(studentUser);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
+
+      // Class is 12 hours from now
+      const nearFutureDate = new Date();
+      nearFutureDate.setHours(nearFutureDate.getHours() + 12);
+
+      const classEntity = makeClass({
+        createdBy: adminUser.id,
+        scheduledAt: nearFutureDate,
+      });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const enrollment = makeClassEnrollment({
+        classId: classEntity.id,
+        studentId: studentUser.id,
+        status: EnrollmentStatus.Pending,
+      });
+      await testDbClient.instance(Tables.ClassEnrollments).insert(enrollment);
+
+      // Create a 24-hour cancellation rule
+      const cancellationRule = makeCancellationRule({
+        createdBy: adminUser.id,
+        hoursBeforeClass: 24,
+        isActive: true,
+      });
+      await testDbClient
+        .instance(Tables.CancellationRules)
+        .insert(cancellationRule);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/classes/${classEntity.id}/enroll`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(response.body.message).toBe(
+        'Cancellation not allowed less than 24 hours before class',
+      );
+    });
+
+    it('should allow cancellation when no active cancellation rule exists', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      const studentUser = makeUser({ role: UserRole.Student });
+      await setupApp(studentUser);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
+
+      // Class is 1 hour from now
+      const nearFutureDate = new Date();
+      nearFutureDate.setHours(nearFutureDate.getHours() + 1);
+
+      const classEntity = makeClass({
+        createdBy: adminUser.id,
+        scheduledAt: nearFutureDate,
+      });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const enrollment = makeClassEnrollment({
+        classId: classEntity.id,
+        studentId: studentUser.id,
+        status: EnrollmentStatus.Pending,
+      });
+      await testDbClient.instance(Tables.ClassEnrollments).insert(enrollment);
+
+      // No cancellation rule exists
+
+      const response = await request(app.getHttpServer())
+        .delete(`/classes/${classEntity.id}/enroll`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.enrollment.status).toBe(EnrollmentStatus.Cancelled);
+    });
   });
 
   describe('GET /classes/me/enrollments', () => {
@@ -489,7 +677,9 @@ describe('schedule/routes/student-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const studentUser = makeUser({ role: UserRole.Student });
       await setupApp(studentUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, studentUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, studentUser]);
 
       const class1 = makeClass({ createdBy: adminUser.id });
       const class2 = makeClass({ createdBy: adminUser.id });
