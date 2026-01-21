@@ -7,4 +7,9 @@ const identitySchema = path.join(
   'module/identity/persistence/database.schema.ts',
 );
 
-export default [identitySchema];
+const scheduleSchema = path.join(
+  srcPath,
+  'module/schedule/persistence/database.schema.ts',
+);
+
+export default [identitySchema, scheduleSchema];

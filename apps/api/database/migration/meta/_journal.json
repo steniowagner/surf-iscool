@@ -15,6 +15,20 @@
       "when": 1768143106030,
       "tag": "0001_unknown_roulette",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768876654082,
+      "tag": "0002_reflective_azazel",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1768999079787,
+      "tag": "0003_shiny_exodus",
+      "breakpoints": true
     }
   ]
 }
