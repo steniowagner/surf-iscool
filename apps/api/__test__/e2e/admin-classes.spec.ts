@@ -361,4 +361,87 @@ describe('schedule/routes/admin-classes', () => {
         .expect(HttpStatus.BAD_REQUEST);
     });
   });
+
+  describe('POST /admin/classes/:id/cancel', () => {
+    it('should cancel a class with reason', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const response = await request(app.getHttpServer())
+        .post(`/admin/classes/${classEntity.id}/cancel`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ cancellationReason: 'Bad weather conditions' })
+        .expect(HttpStatus.OK);
+
+      expect(response.body.class.status).toBe(ClassStatus.Cancelled);
+      expect(response.body.class.cancellationReason).toBe('Bad weather conditions');
+    });
+
+    it('should cancel a class without reason', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const response = await request(app.getHttpServer())
+        .post(`/admin/classes/${classEntity.id}/cancel`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.class.status).toBe(ClassStatus.Cancelled);
+    });
+
+    it('should return BAD_REQUEST for non-existent class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${nonExistentId}/cancel`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when cancelling an already cancelled class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const cancelledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Cancelled,
+      });
+      await testDbClient.instance(Tables.Classes).insert(cancelledClass);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${cancelledClass.id}/cancel`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when cancelling a completed class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const completedClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Completed,
+      });
+      await testDbClient.instance(Tables.Classes).insert(completedClass);
+
+      await request(app.getHttpServer())
+        .post(`/admin/classes/${completedClass.id}/cancel`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
 });

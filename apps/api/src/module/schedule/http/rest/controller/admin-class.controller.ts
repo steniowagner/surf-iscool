@@ -23,6 +23,7 @@ import { UserModel } from '@src/module/identity/core/model/user.model';
 import { AdminClassService } from '../../../core/services/admin-class.service';
 import { CreateClassRequestDto } from '../dto/request/create-class.request.dto';
 import { UpdateClassRequestDto } from '../dto/request/update-class.request.dto';
+import { CancelClassRequestDto } from '../dto/request/cancel-class.request.dto';
 import { ListClassesQueryDto } from '../dto/request/list-classes.query.dto';
 import { ClassResponseDto } from '../dto/response/class.response.dto';
 import { ListClassesResponseDto } from '../dto/response/list-classes.response.dto';
@@ -91,5 +92,18 @@ export class AdminClassController {
       maxCapacity: body.maxCapacity,
     });
     return { class: updatedClass };
+  }
+
+  @Post(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  async cancel(
+    @Param('id') id: string,
+    @Body() body?: CancelClassRequestDto,
+  ): Promise<ClassResponseDto> {
+    const cancelledClass = await this.adminClassService.cancel({
+      id,
+      cancellationReason: body?.cancellationReason,
+    });
+    return { class: cancelledClass };
   }
 }
