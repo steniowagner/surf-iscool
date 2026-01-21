@@ -49,6 +49,11 @@ type AssignInstructorParams = {
   assignedBy: string;
 };
 
+type RemoveInstructorParams = {
+  classId: string;
+  instructorId: string;
+};
+
 @Injectable()
 export class AdminClassService {
   constructor(
@@ -169,5 +174,32 @@ export class AdminClassService {
       instructorId: params.instructorId,
       assignedBy: params.assignedBy,
     });
+  }
+
+  async removeInstructor(
+    params: RemoveInstructorParams,
+  ): Promise<ClassInstructorModel> {
+    const existingClass = await this.classRepository.findById(params.classId);
+
+    if (!existingClass) throw new DomainException('Class not found');
+
+    if (existingClass.status === ClassStatus.Cancelled)
+      throw new DomainException(
+        'Cannot remove instructor from a cancelled class',
+      );
+
+    if (existingClass.status === ClassStatus.Completed)
+      throw new DomainException(
+        'Cannot remove instructor from a completed class',
+      );
+
+    const removed = await this.classInstructorRepository.delete({
+      classId: params.classId,
+      instructorId: params.instructorId,
+    });
+
+    if (!removed) throw new DomainException('Instructor assignment not found');
+
+    return removed;
   }
 }
