@@ -12,6 +12,7 @@ import { PersistenceClientException } from '@shared-modules/persistence/exceptio
 import { PaginatedResult } from '@shared-libs/pagination';
 import { ClassRepository } from '@src/module/schedule/persistence/repository/class/class.repository';
 import { ClassEnrollmentRepository } from '@src/module/schedule/persistence/repository/class-enrollment.repository';
+import { CancellationRuleRepository } from '@src/module/schedule/persistence/repository/cancellation-rule.repository';
 
 import { ClassModel } from '../model/class.model';
 import { ClassEnrollmentModel } from '../model/class-enrollment.model';
@@ -59,6 +60,7 @@ export class StudentClassService {
   constructor(
     private readonly classRepository: ClassRepository,
     private readonly classEnrollmentRepository: ClassEnrollmentRepository,
+    private readonly cancellationRuleRepository: CancellationRuleRepository,
   ) {}
 
   async listAvailable(
@@ -177,6 +179,23 @@ export class StudentClassService {
 
     if (enrollment.status === EnrollmentStatus.Denied)
       throw new DomainException('Cannot cancel a denied enrollment');
+
+    // Check cancellation rules
+    const activeCancellationRule =
+      await this.cancellationRuleRepository.findActive();
+
+    if (activeCancellationRule) {
+      const now = new Date();
+      const classStartTime = existingClass.scheduledAt;
+      const hoursUntilClass =
+        (classStartTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      if (hoursUntilClass < activeCancellationRule.hoursBeforeClass) {
+        throw new DomainException(
+          `Cancellation not allowed less than ${activeCancellationRule.hoursBeforeClass} hours before class`,
+        );
+      }
+    }
 
     const updatedEnrollment = await this.classEnrollmentRepository.updateStatus(
       {
