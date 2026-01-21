@@ -5,8 +5,10 @@ import { ClassStatus, Discipline, SkillLevel } from '@surf-iscool/types';
 import { DomainException } from '@shared-core/exeption/domain.exception';
 import { PaginatedResult } from '@shared-libs/pagination';
 import { ClassRepository } from '@src/module/schedule/persistence/repository/class/class.repository';
+import { ClassInstructorRepository } from '@src/module/schedule/persistence/repository/class-instructor.repository';
 
 import { ClassModel } from '../model/class.model';
+import { ClassInstructorModel } from '../model/class-instructor.model';
 
 type CreateClassParams = {
   discipline: Discipline;
@@ -41,9 +43,18 @@ type ListClassesParams = {
   pageSize?: number;
 };
 
+type AssignInstructorParams = {
+  classId: string;
+  instructorId: string;
+  assignedBy: string;
+};
+
 @Injectable()
 export class AdminClassService {
-  constructor(private readonly classRepository: ClassRepository) {}
+  constructor(
+    private readonly classRepository: ClassRepository,
+    private readonly classInstructorRepository: ClassInstructorRepository,
+  ) {}
 
   async create(params: CreateClassParams): Promise<ClassModel> {
     const classModel = ClassModel.create({
@@ -133,6 +144,30 @@ export class AdminClassService {
       endDate: params.endDate,
       page: params.page,
       pageSize: params.pageSize,
+    });
+  }
+
+  async assignInstructor(
+    params: AssignInstructorParams,
+  ): Promise<ClassInstructorModel> {
+    const existingClass = await this.classRepository.findById(params.classId);
+
+    if (!existingClass) throw new DomainException('Class not found');
+
+    if (existingClass.status === ClassStatus.Cancelled)
+      throw new DomainException(
+        'Cannot assign instructor to a cancelled class',
+      );
+
+    if (existingClass.status === ClassStatus.Completed)
+      throw new DomainException(
+        'Cannot assign instructor to a completed class',
+      );
+
+    return await this.classInstructorRepository.create({
+      classId: params.classId,
+      instructorId: params.instructorId,
+      assignedBy: params.assignedBy,
     });
   }
 }
