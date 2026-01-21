@@ -287,4 +287,78 @@ describe('schedule/routes/admin-classes', () => {
         .expect(HttpStatus.BAD_REQUEST);
     });
   });
+
+  describe('PATCH /admin/classes/:id', () => {
+    it('should update a class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const classEntity = makeClass({ createdBy: adminUser.id });
+      await testDbClient.instance(Tables.Classes).insert(classEntity);
+
+      const response = await request(app.getHttpServer())
+        .patch(`/admin/classes/${classEntity.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({
+          location: 'Updated Beach Location',
+          maxCapacity: 20,
+        })
+        .expect(HttpStatus.OK);
+
+      expect(response.body.class.location).toBe('Updated Beach Location');
+      expect(response.body.class.maxCapacity).toBe(20);
+      expect(response.body.class.discipline).toBe(classEntity.discipline);
+    });
+
+    it('should return BAD_REQUEST for non-existent class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      await request(app.getHttpServer())
+        .patch(`/admin/classes/${nonExistentId}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ location: 'New Location' })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when updating a cancelled class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const cancelledClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Cancelled,
+      });
+      await testDbClient.instance(Tables.Classes).insert(cancelledClass);
+
+      await request(app.getHttpServer())
+        .patch(`/admin/classes/${cancelledClass.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ location: 'New Location' })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return BAD_REQUEST when updating a completed class', async () => {
+      const adminUser = makeUser({ role: UserRole.Admin });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const completedClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Completed,
+      });
+      await testDbClient.instance(Tables.Classes).insert(completedClass);
+
+      await request(app.getHttpServer())
+        .patch(`/admin/classes/${completedClass.id}`)
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .send({ location: 'New Location' })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
 });
