@@ -120,3 +120,23 @@ export const classEnrollmentsTable = pgTable(
     index('idx_class_enrollments_status').on(table.status),
   ],
 );
+
+export const cancellationRulesTable = pgTable(
+  'cancellation_rules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    hoursBeforeClass: integer('hours_before_class').notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    createdBy: text('created_by')
+      .notNull()
+      .references(() => usersTable.id),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index('idx_cancellation_rules_is_active').on(table.isActive)],
+);

@@ -6,6 +6,7 @@ import { LoggerModule } from '@shared-modules/logger/logger.module';
 import { ClassRepository } from './repository/class/class.repository';
 import { ClassInstructorRepository } from './repository/class-instructor.repository';
 import { ClassEnrollmentRepository } from './repository/class-enrollment.repository';
+import { CancellationRuleRepository } from './repository/cancellation-rule.repository';
 import * as schema from './database.schema';
 
 @Module({
@@ -14,12 +15,14 @@ import * as schema from './database.schema';
     ClassRepository,
     ClassInstructorRepository,
     ClassEnrollmentRepository,
+    CancellationRuleRepository,
   ],
   exports: [
     PersistenceModule,
     ClassRepository,
     ClassInstructorRepository,
     ClassEnrollmentRepository,
+    CancellationRuleRepository,
   ],
 })
 export class SchedulePersistenceModule {}

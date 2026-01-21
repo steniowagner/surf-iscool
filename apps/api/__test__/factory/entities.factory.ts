@@ -12,6 +12,7 @@ import { UserModel } from '@src/module/identity/core/model/user.model';
 import { ClassModel } from '@src/module/schedule/core/model/class.model';
 import { ClassInstructorModel } from '@src/module/schedule/core/model/class-instructor.model';
 import { ClassEnrollmentModel } from '@src/module/schedule/core/model/class-enrollment.model';
+import { CancellationRuleModel } from '@src/module/schedule/core/model/cancellation-rule.model';
 
 export const makeUser = (overrides: Partial<UserModel> = {}) =>
   UserModel.create({
@@ -61,5 +62,17 @@ export const makeClassEnrollment = (
     studentId: generateId(),
     status: EnrollmentStatus.Pending,
     isExperimental: false,
+    ...overrides,
+  });
+
+export const makeCancellationRule = (
+  overrides: Partial<CancellationRuleModel> = {},
+) =>
+  CancellationRuleModel.create({
+    id: generateId(),
+    name: faker.lorem.words(3),
+    hoursBeforeClass: 24,
+    isActive: true,
+    createdBy: generateId(),
     ...overrides,
   });
