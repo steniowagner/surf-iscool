@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ClassStatus, Discipline, SkillLevel } from '@surf-iscool/types';
 
 import { DomainException } from '@shared-core/exeption/domain.exception';
+import { PaginatedResult } from '@shared-libs/pagination';
 import { ClassRepository } from '@src/module/schedule/persistence/repository/class/class.repository';
 
 import { ClassModel } from '../model/class.model';
@@ -30,6 +31,14 @@ type UpdateClassParams = {
 type CancelClassParams = {
   id: string;
   cancellationReason?: string;
+};
+
+type ListClassesParams = {
+  status?: ClassStatus;
+  startDate?: Date;
+  endDate?: Date;
+  page?: number;
+  pageSize?: number;
 };
 
 @Injectable()
@@ -113,5 +122,17 @@ export class AdminClassService {
     if (!completedClass) throw new DomainException('Failed to complete class');
 
     return completedClass;
+  }
+
+  async list(
+    params: ListClassesParams = {},
+  ): Promise<PaginatedResult<ClassModel>> {
+    return await this.classRepository.findAll({
+      status: params.status,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      page: params.page,
+      pageSize: params.pageSize,
+    });
   }
 }
