@@ -152,6 +152,14 @@ export class AdminClassService {
     });
   }
 
+  async findById(id: string): Promise<ClassModel> {
+    const existingClass = await this.classRepository.findById(id);
+
+    if (!existingClass) throw new DomainException('Class not found');
+
+    return existingClass;
+  }
+
   async assignInstructor(
     params: AssignInstructorParams,
   ): Promise<ClassInstructorModel> {
