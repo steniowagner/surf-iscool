@@ -30,6 +30,26 @@ export class InstructorClassController {
     return { classes };
   }
 
+  @Get('upcoming')
+  async listUpcomingClasses(
+    @CurrentUser() instructor: UserModel,
+  ): Promise<ListInstructorClassesResponseDto> {
+    const classes = await this.instructorClassService.getUpcomingClasses({
+      instructorId: instructor.id,
+    });
+    return { classes };
+  }
+
+  @Get('history')
+  async listClassHistory(
+    @CurrentUser() instructor: UserModel,
+  ): Promise<ListInstructorClassesResponseDto> {
+    const classes = await this.instructorClassService.getClassHistory({
+      instructorId: instructor.id,
+    });
+    return { classes };
+  }
+
   @Get(':id')
   async getClassDetails(
     @Param('id') classId: string,

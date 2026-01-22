@@ -43,6 +43,13 @@
       "when": 1769016575625,
       "tag": "0005_classy_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1769042496297,
+      "tag": "0006_sweet_rafael_vega",
+      "breakpoints": true
     }
   ]
 }

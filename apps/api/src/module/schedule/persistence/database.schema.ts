@@ -140,3 +140,25 @@ export const cancellationRulesTable = pgTable(
   },
   (table) => [index('idx_cancellation_rules_is_active').on(table.isActive)],
 );
+
+export const classPhotosTable = pgTable(
+  'class_photos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classesTable.id),
+    uploadedBy: text('uploaded_by')
+      .notNull()
+      .references(() => usersTable.id),
+    url: text('url').notNull(),
+    caption: text('caption'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('idx_class_photos_class_id').on(table.classId),
+    index('idx_class_photos_uploaded_by').on(table.uploadedBy),
+  ],
+);

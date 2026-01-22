@@ -9,11 +9,13 @@ import { AdminEnrollmentController } from './http/rest/controller/admin-enrollme
 import { AdminCancellationRuleController } from './http/rest/controller/admin-cancellation-rule.controller';
 import { StudentClassController } from './http/rest/controller/student-class.controller';
 import { InstructorClassController } from './http/rest/controller/instructor-class.controller';
+import { ClassPhotoController } from './http/rest/controller/class-photo.controller';
 import { AdminClassService } from './core/services/admin-class.service';
 import { AdminEnrollmentService } from './core/services/admin-enrollment.service';
 import { CancellationRuleService } from './core/services/cancellation-rule.service';
 import { StudentClassService } from './core/services/student-class.service';
 import { InstructorClassService } from './core/services/instructor-class.service';
+import { ClassPhotoService } from './core/services/class-photo.service';
 
 @Module({
   imports: [ConfigModule.forRoot(), SchedulePersistenceModule, AuthModule],
@@ -23,6 +25,7 @@ import { InstructorClassService } from './core/services/instructor-class.service
     CancellationRuleService,
     StudentClassService,
     InstructorClassService,
+    ClassPhotoService,
   ],
   controllers: [
     AdminClassController,
@@ -30,6 +33,7 @@ import { InstructorClassService } from './core/services/instructor-class.service
     AdminCancellationRuleController,
     StudentClassController,
     InstructorClassController,
+    ClassPhotoController,
   ],
 })
 export class ScheduleModule {}
