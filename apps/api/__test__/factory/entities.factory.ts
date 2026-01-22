@@ -13,6 +13,7 @@ import { ClassModel } from '@src/module/schedule/core/model/class.model';
 import { ClassInstructorModel } from '@src/module/schedule/core/model/class-instructor.model';
 import { ClassEnrollmentModel } from '@src/module/schedule/core/model/class-enrollment.model';
 import { CancellationRuleModel } from '@src/module/schedule/core/model/cancellation-rule.model';
+import { ClassPhotoModel } from '@src/module/schedule/core/model/class-photo.model';
 
 export const makeUser = (overrides: Partial<UserModel> = {}) =>
   UserModel.create({
@@ -74,5 +75,15 @@ export const makeCancellationRule = (
     hoursBeforeClass: 24,
     isActive: true,
     createdBy: generateId(),
+    ...overrides,
+  });
+
+export const makeClassPhoto = (overrides: Partial<ClassPhotoModel> = {}) =>
+  ClassPhotoModel.create({
+    id: generateId(),
+    classId: generateId(),
+    uploadedBy: generateId(),
+    url: faker.internet.url(),
+    caption: faker.lorem.sentence(),
     ...overrides,
   });

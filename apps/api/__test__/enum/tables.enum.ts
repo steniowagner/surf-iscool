@@ -5,4 +5,5 @@ export enum Tables {
   ClassInstructors = 'class_instructors',
   ClassEnrollments = 'class_enrollments',
   CancellationRules = 'cancellation_rules',
+  ClassPhotos = 'class_photos',
 }
