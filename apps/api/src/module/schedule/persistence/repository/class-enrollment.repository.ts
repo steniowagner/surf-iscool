@@ -290,4 +290,51 @@ export class ClassEnrollmentRepository {
       this.handleError(error);
     }
   }
+
+  async countByStatus(db: DbInstance = this.db) {
+    try {
+      const rows = await db
+        .select({
+          status: classEnrollmentsTable.status,
+          count: count(),
+        })
+        .from(classEnrollmentsTable)
+        .groupBy(classEnrollmentsTable.status);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.status] = Number(row.count);
+          return acc;
+        },
+        {} as Record<EnrollmentStatus, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countTotal(db: DbInstance = this.db) {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(classEnrollmentsTable);
+
+      return result?.count ?? 0;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countExperimental(db: DbInstance = this.db) {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(classEnrollmentsTable)
+        .where(eq(classEnrollmentsTable.isExperimental, true));
+
+      return result?.count ?? 0;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }

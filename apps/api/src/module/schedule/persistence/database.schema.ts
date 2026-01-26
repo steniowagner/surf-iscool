@@ -162,3 +162,29 @@ export const classPhotosTable = pgTable(
     index('idx_class_photos_uploaded_by').on(table.uploadedBy),
   ],
 );
+
+export const classRatingsTable = pgTable(
+  'class_ratings',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classesTable.id),
+    studentId: text('student_id')
+      .notNull()
+      .references(() => usersTable.id),
+    rating: integer('rating').notNull(),
+    comment: text('comment'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('uq_class_ratings_class_student').on(
+      table.classId,
+      table.studentId,
+    ),
+    index('idx_class_ratings_class_id').on(table.classId),
+    index('idx_class_ratings_student_id').on(table.studentId),
+  ],
+);
