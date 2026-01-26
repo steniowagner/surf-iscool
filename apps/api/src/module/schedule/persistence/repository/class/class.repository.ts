@@ -1,7 +1,17 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
 import { PgTransaction } from 'drizzle-orm/pg-core';
-import { eq, and, InferSelectModel, SQL, gte, lte, desc } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  InferSelectModel,
+  SQL,
+  gte,
+  lte,
+  desc,
+  between,
+  sql,
+} from 'drizzle-orm';
 
 import { ClassStatus } from '@surf-iscool/types';
 
@@ -180,6 +190,56 @@ export class ClassRepository extends DefaultRepository<
         .returning();
 
       return row ? this.mapToModel(row) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async findScheduledStartingBetween(
+    startTime: Date,
+    endTime: Date,
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select()
+        .from(this.table)
+        .where(
+          and(
+            eq(this.table.status, ClassStatus.Scheduled),
+            between(this.table.scheduledAt, startTime, endTime),
+          ),
+        );
+
+      return rows.map((row) => this.mapToModel(row));
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async findCompletedEndedBetween(
+    startTime: Date,
+    endTime: Date,
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select()
+        .from(this.table)
+        .where(
+          and(
+            eq(this.table.status, ClassStatus.Completed),
+            between(
+              sql`${this.table.scheduledAt} + (${this.table.duration} || ' minutes')::interval`,
+              startTime,
+              endTime,
+            ),
+          ),
+        );
+
+      return rows.map((row) => this.mapToModel(row));
     } catch (error) {
       this.handleError(error);
     }

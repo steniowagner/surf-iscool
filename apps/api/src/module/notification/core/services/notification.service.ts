@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { NotificationType } from '@surf-iscool/types';
+import { NotificationType, UserStatus } from '@surf-iscool/types';
 
 import { DomainException } from '@shared-core/exeption/domain.exception';
 import { NotificationRepository } from '@src/module/notification/persistence/repository/notification.repository';
+import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 
 import { NotificationModel } from '../model/notification.model';
 
@@ -30,10 +31,17 @@ type MarkAsReadParams = {
   userId: string;
 };
 
+type BroadcastParams = {
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+};
+
 @Injectable()
 export class NotificationService {
   constructor(
     private readonly notificationRepository: NotificationRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async create(params: CreateNotificationParams): Promise<NotificationModel> {
@@ -95,5 +103,25 @@ export class NotificationService {
 
   async markAllAsRead(userId: string): Promise<NotificationModel[]> {
     return await this.notificationRepository.markAllAsRead(userId);
+  }
+
+  async broadcast(params: BroadcastParams): Promise<NotificationModel[]> {
+    const activeUsers = await this.userRepository.findAll({
+      status: UserStatus.Active,
+    });
+
+    if (!activeUsers || activeUsers.length === 0) {
+      return [];
+    }
+
+    const notifications = activeUsers.map((user) => ({
+      userId: user.id,
+      type: NotificationType.GlobalAnnouncement,
+      title: params.title,
+      body: params.body,
+      data: params.data,
+    }));
+
+    return await this.createMany({ notifications });
   }
 }
