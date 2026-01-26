@@ -30,6 +30,7 @@
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.1.0",
     "@supabase/supabase-js": "^2.90.1",
     "@surf-iscool/types": "workspace:*",
     "class-transformer": "^0.5.1",
@@ -96,6 +97,12 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@src/(.*)$": "<rootDir>/$1",
+      "^@shared-libs/(.*)$": "<rootDir>/module/shared/lib/$1",
+      "^@shared-modules/(.*)$": "<rootDir>/module/shared/module/$1",
+      "^@shared-core/(.*)$": "<rootDir>/module/shared/core/$1"
+    }
   }
 }
