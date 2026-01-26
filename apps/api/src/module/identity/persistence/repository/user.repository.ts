@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
 import { PgTransaction } from 'drizzle-orm/pg-core';
-import { eq, and, InferSelectModel, SQL } from 'drizzle-orm';
+import { eq, and, InferSelectModel, SQL, count, isNull } from 'drizzle-orm';
 
 import { UserStatus, UserRole } from '@surf-iscool/types';
 
@@ -272,6 +272,73 @@ export class UserRepository extends DefaultRepository<
         .returning();
 
       return row ? this.mapToModel(row) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countByRole(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select({
+          role: this.table.role,
+          count: count(),
+        })
+        .from(this.table)
+        .where(isNull(this.table.deletedAt))
+        .groupBy(this.table.role);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.role] = Number(row.count);
+          return acc;
+        },
+        {} as Record<UserRole, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countByStatus(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select({
+          status: this.table.status,
+          count: count(),
+        })
+        .from(this.table)
+        .groupBy(this.table.status);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.status] = Number(row.count);
+          return acc;
+        },
+        {} as Record<UserStatus, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countTotal(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(this.table)
+        .where(isNull(this.table.deletedAt));
+
+      return result?.count ?? 0;
     } catch (error) {
       this.handleError(error);
     }

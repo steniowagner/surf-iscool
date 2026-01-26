@@ -15,6 +15,7 @@ import { ClassInstructorModel } from '@src/module/schedule/core/model/class-inst
 import { ClassEnrollmentModel } from '@src/module/schedule/core/model/class-enrollment.model';
 import { CancellationRuleModel } from '@src/module/schedule/core/model/cancellation-rule.model';
 import { ClassPhotoModel } from '@src/module/schedule/core/model/class-photo.model';
+import { ClassRatingModel } from '@src/module/schedule/core/model/class-rating.model';
 import { NotificationModel } from '@src/module/notification/core/model/notification.model';
 import { UserDeviceModel } from '@src/module/notification/core/model/user-device.model';
 
@@ -108,5 +109,14 @@ export const makeUserDevice = (overrides: Partial<UserDeviceModel> = {}) =>
     userId: generateId(),
     deviceToken: faker.string.alphanumeric(64),
     platform: faker.helpers.arrayElement(['ios', 'android']),
+    ...overrides,
+  });
+
+export const makeClassRating = (overrides: Partial<ClassRatingModel> = {}) =>
+  ClassRatingModel.create({
+    classId: generateId(),
+    studentId: generateId(),
+    rating: faker.number.int({ min: 1, max: 5 }),
+    comment: faker.lorem.sentence(),
     ...overrides,
   });

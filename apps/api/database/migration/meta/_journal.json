@@ -64,6 +64,13 @@
       "when": 1769390395329,
       "tag": "0008_bizarre_lady_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1769426940091,
+      "tag": "0009_puzzling_moonstone",
+      "breakpoints": true
     }
   ]
 }

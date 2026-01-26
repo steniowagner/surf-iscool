@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Inject, Injectable } from '@nestjs/common';
 import { PgTransaction } from 'drizzle-orm/pg-core';
-import { eq, and, InferSelectModel } from 'drizzle-orm';
+import { eq, and, InferSelectModel, count, desc, sql } from 'drizzle-orm';
 
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
 import { DATABASE } from '@shared-modules/persistence/util/constants';
@@ -157,6 +157,61 @@ export class ClassInstructorRepository {
         .returning();
 
       return rows.map((row) => this.mapToModel(row));
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countClassesPerInstructor(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select({
+          instructorId: classInstructorsTable.instructorId,
+          classCount: count(),
+        })
+        .from(classInstructorsTable)
+        .groupBy(classInstructorsTable.instructorId)
+        .orderBy(desc(count()));
+
+      return rows.map((row) => ({
+        instructorId: row.instructorId,
+        classCount: Number(row.classCount),
+      }));
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countTotalAssignments(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(classInstructorsTable);
+
+      return result?.count ?? 0;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countUniqueInstructors(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const [result] = await db
+        .select({
+          count: sql<number>`count(distinct ${classInstructorsTable.instructorId})`,
+        })
+        .from(classInstructorsTable);
+
+      return Number(result?.count ?? 0);
     } catch (error) {
       this.handleError(error);
     }

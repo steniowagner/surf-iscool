@@ -5,15 +5,13 @@ import {
   eq,
   and,
   InferSelectModel,
-  SQL,
-  gte,
-  lte,
   desc,
   between,
   sql,
+  count,
 } from 'drizzle-orm';
 
-import { ClassStatus } from '@surf-iscool/types';
+import { ClassStatus, Discipline, SkillLevel } from '@surf-iscool/types';
 
 import { DefaultRepository } from '@shared-modules/persistence/repository/default.repository';
 import { AppLoggerService } from '@shared-modules/logger/service/app-logger.service';
@@ -240,6 +238,93 @@ export class ClassRepository extends DefaultRepository<
         );
 
       return rows.map((row) => this.mapToModel(row));
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countByStatus(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select({
+          status: this.table.status,
+          count: count(),
+        })
+        .from(this.table)
+        .groupBy(this.table.status);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.status] = Number(row.count);
+          return acc;
+        },
+        {} as Record<ClassStatus, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countByDiscipline(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select({
+          discipline: this.table.discipline,
+          count: count(),
+        })
+        .from(this.table)
+        .groupBy(this.table.discipline);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.discipline] = Number(row.count);
+          return acc;
+        },
+        {} as Record<Discipline, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countBySkillLevel(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const rows = await db
+        .select({
+          skillLevel: this.table.skillLevel,
+          count: count(),
+        })
+        .from(this.table)
+        .groupBy(this.table.skillLevel);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.skillLevel] = Number(row.count);
+          return acc;
+        },
+        {} as Record<SkillLevel, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countTotal(
+    db: PostgresJsDatabase<typeof schema> | PgTransaction<any, any, any> = this
+      .db,
+  ) {
+    try {
+      const [result] = await db.select({ count: count() }).from(this.table);
+      return result?.count ?? 0;
     } catch (error) {
       this.handleError(error);
     }

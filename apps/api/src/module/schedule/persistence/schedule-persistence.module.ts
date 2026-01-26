@@ -8,6 +8,7 @@ import { ClassInstructorRepository } from './repository/class-instructor.reposit
 import { ClassEnrollmentRepository } from './repository/class-enrollment.repository';
 import { CancellationRuleRepository } from './repository/cancellation-rule.repository';
 import { ClassPhotoRepository } from './repository/class-photo.repository';
+import { ClassRatingRepository } from './repository/class-rating.repository';
 import * as schema from './database.schema';
 
 @Module({
@@ -18,6 +19,7 @@ import * as schema from './database.schema';
     ClassEnrollmentRepository,
     CancellationRuleRepository,
     ClassPhotoRepository,
+    ClassRatingRepository,
   ],
   exports: [
     PersistenceModule,
@@ -26,6 +28,7 @@ import * as schema from './database.schema';
     ClassEnrollmentRepository,
     CancellationRuleRepository,
     ClassPhotoRepository,
+    ClassRatingRepository,
   ],
 })
 export class SchedulePersistenceModule {}
