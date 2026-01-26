@@ -4,11 +4,12 @@ import { PersistenceModule } from '@shared-modules/persistence/persistence.modul
 import { LoggerModule } from '@shared-modules/logger/logger.module';
 
 import { NotificationRepository } from './repository/notification.repository';
+import { UserDeviceRepository } from './repository/user-device.repository';
 import * as schema from './database.schema';
 
 @Module({
   imports: [PersistenceModule.forRoot(schema), LoggerModule],
-  providers: [NotificationRepository],
-  exports: [PersistenceModule, NotificationRepository],
+  providers: [NotificationRepository, UserDeviceRepository],
+  exports: [PersistenceModule, NotificationRepository, UserDeviceRepository],
 })
 export class NotificationPersistenceModule {}

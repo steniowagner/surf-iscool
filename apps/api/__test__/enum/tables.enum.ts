@@ -7,4 +7,5 @@ export enum Tables {
   CancellationRules = 'cancellation_rules',
   ClassPhotos = 'class_photos',
   Notifications = 'notifications',
+  UserDevices = 'user_devices',
 }

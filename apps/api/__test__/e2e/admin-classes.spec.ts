@@ -9,9 +9,19 @@ import { ScheduleModule } from '@src/module/schedule/schedule.module';
 import { IdentityModule } from '@src/module/identity/identity.module';
 import { ConfigModule } from '@shared-modules/config/config.module';
 
-import { UserRole, Discipline, SkillLevel, ClassStatus } from '@surf-iscool/types';
+import {
+  UserRole,
+  Discipline,
+  SkillLevel,
+  ClassStatus,
+} from '@surf-iscool/types';
 
-import { makeUser, makeSupabaseUser, makeClass, makeClassInstructor } from '../factory';
+import {
+  makeUser,
+  makeSupabaseUser,
+  makeClass,
+  makeClassInstructor,
+} from '../factory';
 import { Tables } from '../enum/tables.enum';
 import { TestDb } from '../utils';
 
@@ -175,7 +185,9 @@ describe('schedule/routes/admin-classes', () => {
       const class1 = makeClass({ createdBy: adminUser.id });
       const class2 = makeClass({ createdBy: adminUser.id });
       const class3 = makeClass({ createdBy: adminUser.id });
-      await testDbClient.instance(Tables.Classes).insert([class1, class2, class3]);
+      await testDbClient
+        .instance(Tables.Classes)
+        .insert([class1, class2, class3]);
 
       const response = await request(app.getHttpServer())
         .get('/admin/classes')
@@ -378,7 +390,9 @@ describe('schedule/routes/admin-classes', () => {
         .expect(HttpStatus.OK);
 
       expect(response.body.class.status).toBe(ClassStatus.Cancelled);
-      expect(response.body.class.cancellationReason).toBe('Bad weather conditions');
+      expect(response.body.class.cancellationReason).toBe(
+        'Bad weather conditions',
+      );
     });
 
     it('should cancel a class without reason', async () => {
@@ -515,7 +529,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -528,7 +544,9 @@ describe('schedule/routes/admin-classes', () => {
 
       expect(response.body.classInstructor).toBeDefined();
       expect(response.body.classInstructor.classId).toBe(classEntity.id);
-      expect(response.body.classInstructor.instructorId).toBe(instructorUser.id);
+      expect(response.body.classInstructor.instructorId).toBe(
+        instructorUser.id,
+      );
       expect(response.body.classInstructor.assignedBy).toBe(adminUser.id);
     });
 
@@ -536,7 +554,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const nonExistentId = '00000000-0000-0000-0000-000000000000';
 
@@ -568,7 +588,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -578,7 +600,9 @@ describe('schedule/routes/admin-classes', () => {
         instructorId: instructorUser.id,
         assignedBy: adminUser.id,
       });
-      await testDbClient.instance(Tables.ClassInstructors).insert(existingAssignment);
+      await testDbClient
+        .instance(Tables.ClassInstructors)
+        .insert(existingAssignment);
 
       await request(app.getHttpServer())
         .post(`/admin/classes/${classEntity.id}/instructors`)
@@ -591,7 +615,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const cancelledClass = makeClass({
         createdBy: adminUser.id,
@@ -610,7 +636,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const completedClass = makeClass({
         createdBy: adminUser.id,
@@ -631,7 +659,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
@@ -644,25 +674,33 @@ describe('schedule/routes/admin-classes', () => {
       await testDbClient.instance(Tables.ClassInstructors).insert(assignment);
 
       const response = await request(app.getHttpServer())
-        .delete(`/admin/classes/${classEntity.id}/instructors/${instructorUser.id}`)
+        .delete(
+          `/admin/classes/${classEntity.id}/instructors/${instructorUser.id}`,
+        )
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.OK);
 
       expect(response.body.classInstructor).toBeDefined();
       expect(response.body.classInstructor.classId).toBe(classEntity.id);
-      expect(response.body.classInstructor.instructorId).toBe(instructorUser.id);
+      expect(response.body.classInstructor.instructorId).toBe(
+        instructorUser.id,
+      );
     });
 
     it('should return BAD_REQUEST for non-existent class', async () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const nonExistentId = '00000000-0000-0000-0000-000000000000';
 
       await request(app.getHttpServer())
-        .delete(`/admin/classes/${nonExistentId}/instructors/${instructorUser.id}`)
+        .delete(
+          `/admin/classes/${nonExistentId}/instructors/${instructorUser.id}`,
+        )
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -671,13 +709,17 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const classEntity = makeClass({ createdBy: adminUser.id });
       await testDbClient.instance(Tables.Classes).insert(classEntity);
 
       await request(app.getHttpServer())
-        .delete(`/admin/classes/${classEntity.id}/instructors/${instructorUser.id}`)
+        .delete(
+          `/admin/classes/${classEntity.id}/instructors/${instructorUser.id}`,
+        )
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -686,7 +728,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const cancelledClass = makeClass({
         createdBy: adminUser.id,
@@ -695,7 +739,9 @@ describe('schedule/routes/admin-classes', () => {
       await testDbClient.instance(Tables.Classes).insert(cancelledClass);
 
       await request(app.getHttpServer())
-        .delete(`/admin/classes/${cancelledClass.id}/instructors/${instructorUser.id}`)
+        .delete(
+          `/admin/classes/${cancelledClass.id}/instructors/${instructorUser.id}`,
+        )
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -704,7 +750,9 @@ describe('schedule/routes/admin-classes', () => {
       const adminUser = makeUser({ role: UserRole.Admin });
       const instructorUser = makeUser({ role: UserRole.Instructor });
       await setupApp(adminUser);
-      await testDbClient.instance(Tables.Users).insert([adminUser, instructorUser]);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, instructorUser]);
 
       const completedClass = makeClass({
         createdBy: adminUser.id,
@@ -713,7 +761,9 @@ describe('schedule/routes/admin-classes', () => {
       await testDbClient.instance(Tables.Classes).insert(completedClass);
 
       await request(app.getHttpServer())
-        .delete(`/admin/classes/${completedClass.id}/instructors/${instructorUser.id}`)
+        .delete(
+          `/admin/classes/${completedClass.id}/instructors/${instructorUser.id}`,
+        )
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.BAD_REQUEST);
     });

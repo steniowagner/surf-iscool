@@ -16,6 +16,7 @@ import { ClassEnrollmentModel } from '@src/module/schedule/core/model/class-enro
 import { CancellationRuleModel } from '@src/module/schedule/core/model/cancellation-rule.model';
 import { ClassPhotoModel } from '@src/module/schedule/core/model/class-photo.model';
 import { NotificationModel } from '@src/module/notification/core/model/notification.model';
+import { UserDeviceModel } from '@src/module/notification/core/model/user-device.model';
 
 export const makeUser = (overrides: Partial<UserModel> = {}) =>
   UserModel.create({
@@ -98,5 +99,14 @@ export const makeNotification = (overrides: Partial<NotificationModel> = {}) =>
     title: faker.lorem.sentence(),
     body: faker.lorem.paragraph(),
     data: null,
+    ...overrides,
+  });
+
+export const makeUserDevice = (overrides: Partial<UserDeviceModel> = {}) =>
+  UserDeviceModel.create({
+    id: generateId(),
+    userId: generateId(),
+    deviceToken: faker.string.alphanumeric(64),
+    platform: faker.helpers.arrayElement(['ios', 'android']),
     ...overrides,
   });
