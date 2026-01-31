@@ -24,6 +24,7 @@ import {
   makeClass,
   makeClassEnrollment,
   makeClassInstructor,
+  makeClassRating,
 } from '../factory';
 import { Tables } from '../enum/tables.enum';
 import { TestDb } from '../utils';
@@ -38,6 +39,7 @@ describe('schedule/routes/admin-analytics', () => {
       Tables.Classes,
       Tables.ClassEnrollments,
       Tables.ClassInstructors,
+      Tables.ClassRatings,
     ]);
     await testDbClient.init();
   });
@@ -400,6 +402,107 @@ describe('schedule/routes/admin-analytics', () => {
 
       await request(app.getHttpServer())
         .get('/admin/analytics/instructors')
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.FORBIDDEN);
+    });
+  });
+
+  describe('GET /admin/analytics/ratings', () => {
+    it('should return rating analytics for admin', async () => {
+      const adminUser = makeUser({
+        role: UserRole.Admin,
+        status: UserStatus.Active,
+      });
+      const student1 = makeUser({
+        role: UserRole.Student,
+        status: UserStatus.Active,
+      });
+      const student2 = makeUser({
+        role: UserRole.Student,
+        status: UserStatus.Active,
+      });
+      const student3 = makeUser({
+        role: UserRole.Student,
+        status: UserStatus.Active,
+      });
+      await setupApp(adminUser);
+      await testDbClient
+        .instance(Tables.Users)
+        .insert([adminUser, student1, student2, student3]);
+
+      const completedClass = makeClass({
+        createdBy: adminUser.id,
+        status: ClassStatus.Completed,
+      });
+      await testDbClient.instance(Tables.Classes).insert(completedClass);
+
+      // Create ratings with different values
+      const rating1 = makeClassRating({
+        classId: completedClass.id,
+        studentId: student1.id,
+        rating: 5,
+      });
+      const rating2 = makeClassRating({
+        classId: completedClass.id,
+        studentId: student2.id,
+        rating: 4,
+      });
+      const rating3 = makeClassRating({
+        classId: completedClass.id,
+        studentId: student3.id,
+        rating: 5,
+      });
+      await testDbClient
+        .instance(Tables.ClassRatings)
+        .insert([rating1, rating2, rating3]);
+
+      const response = await request(app.getHttpServer())
+        .get('/admin/analytics/ratings')
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.totalRatings).toBe(3);
+      expect(response.body.averageRating).toBeCloseTo(4.67, 1);
+      expect(response.body.byRating).toBeDefined();
+      expect(response.body.byRating[1]).toBe(0);
+      expect(response.body.byRating[2]).toBe(0);
+      expect(response.body.byRating[3]).toBe(0);
+      expect(response.body.byRating[4]).toBe(1);
+      expect(response.body.byRating[5]).toBe(2);
+    });
+
+    it('should return zeros when no ratings exist', async () => {
+      const adminUser = makeUser({
+        role: UserRole.Admin,
+        status: UserStatus.Active,
+      });
+      await setupApp(adminUser);
+      await testDbClient.instance(Tables.Users).insert(adminUser);
+
+      const response = await request(app.getHttpServer())
+        .get('/admin/analytics/ratings')
+        .set('Authorization', 'Bearer FAKE_TOKEN')
+        .expect(HttpStatus.OK);
+
+      expect(response.body.totalRatings).toBe(0);
+      expect(response.body.averageRating).toBeNull();
+      expect(response.body.byRating[1]).toBe(0);
+      expect(response.body.byRating[2]).toBe(0);
+      expect(response.body.byRating[3]).toBe(0);
+      expect(response.body.byRating[4]).toBe(0);
+      expect(response.body.byRating[5]).toBe(0);
+    });
+
+    it('should reject non-admin users', async () => {
+      const studentUser = makeUser({
+        role: UserRole.Student,
+        status: UserStatus.Active,
+      });
+      await setupApp(studentUser);
+      await testDbClient.instance(Tables.Users).insert(studentUser);
+
+      await request(app.getHttpServer())
+        .get('/admin/analytics/ratings')
         .set('Authorization', 'Bearer FAKE_TOKEN')
         .expect(HttpStatus.FORBIDDEN);
     });

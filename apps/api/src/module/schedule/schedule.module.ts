@@ -22,6 +22,7 @@ import { ClassRatingService } from './core/services/class-rating.service';
 import { ClassAnalyticsService } from './core/services/class-analytics.service';
 import { EnrollmentAnalyticsService } from './core/services/enrollment-analytics.service';
 import { InstructorAnalyticsService } from './core/services/instructor-analytics.service';
+import { RatingAnalyticsService } from './core/services/rating-analytics.service';
 
 @Module({
   imports: [ConfigModule.forRoot(), SchedulePersistenceModule, AuthModule],
@@ -36,6 +37,7 @@ import { InstructorAnalyticsService } from './core/services/instructor-analytics
     ClassAnalyticsService,
     EnrollmentAnalyticsService,
     InstructorAnalyticsService,
+    RatingAnalyticsService,
   ],
   controllers: [
     AdminClassController,

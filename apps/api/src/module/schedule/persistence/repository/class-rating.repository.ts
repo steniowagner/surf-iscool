@@ -166,4 +166,50 @@ export class ClassRatingRepository {
       this.handleError(error);
     }
   }
+
+  async countTotal(db: DbInstance = this.db) {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(classRatingsTable);
+
+      return Number(result?.count ?? 0);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async getAverageRating(db: DbInstance = this.db) {
+    try {
+      const [result] = await db
+        .select({ average: avg(classRatingsTable.rating) })
+        .from(classRatingsTable);
+
+      return result?.average ? parseFloat(result.average) : null;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async countByRating(db: DbInstance = this.db) {
+    try {
+      const rows = await db
+        .select({
+          rating: classRatingsTable.rating,
+          count: count(),
+        })
+        .from(classRatingsTable)
+        .groupBy(classRatingsTable.rating);
+
+      return rows.reduce(
+        (acc, row) => {
+          acc[row.rating] = Number(row.count);
+          return acc;
+        },
+        {} as Record<number, number>,
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }
